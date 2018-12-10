@@ -20,7 +20,9 @@ _Under construction_
 
 ## Install
 
-_Under construction_
+For logging functions,
+- Import both "LoggerModule.bas" and "LoggerClass.cls" to use Logger class.
+- You may also import "ExamplesForLoggerClass.bas" to learn how to use Logger class.
 
 ## Contribution
 
