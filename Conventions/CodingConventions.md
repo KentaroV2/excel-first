@@ -1,7 +1,11 @@
 # Conding Conventions
 
-## Class Modules Naming Conventions
-A class module's name should be a class name followed by a word; "Class" with upper camel cases.
+## Class Naming Conventions
+A class name should be a class name followed by a word;"Class" with upper camel cases. Here is examples:
+
+* A class name of **ExcelFirst** is `ExcelFirstClass`.
+* A class name of **Logger** is `LoggerClass`.
+
 
 <class name>Class
 
