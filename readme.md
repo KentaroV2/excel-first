@@ -1,6 +1,6 @@
 excel-first
 ====
-A set of VBA (Visual Basic for Applications) libraries running on Microsoft Excel for (a) taking advantage of original Excel functionalities and for (b) smoothly deploying your applications to your business since most of companies use Microsoft Excel compliant with companies IT policies.
+This project provides a set of VBA (Visual Basic for Applications) libraries running on Microsoft Excel for (a) taking advantage of original Excel functionalities and for (b) smoothly deploying your applications to your business since most of companies use Microsoft Excel compliant with companies IT policies.
 
 ## Description
 
@@ -16,13 +16,8 @@ _Under construction_
 
 ## Usage
 
-_Under construction_
-
-## Install
-
-For logging functions,
-- Import both "LoggerModule.bas" and "LoggerClass.cls" to use Logger class.
-- You may also import "ExamplesForLoggerClass.bas" to learn how to use Logger class.
+- Should import all *.bas files and *.cls files under a root directory to your Excel file.
+- May import each "ExamplesFor*.bas" to learn how to use corresponding class.
 
 ## Contribution
 
