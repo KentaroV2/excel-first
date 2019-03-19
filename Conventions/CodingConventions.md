@@ -23,6 +23,7 @@ At private scope, a constant should be **lower-snake**-case and a variable shoul
 Private const private_Constant_String As String = "Private constant string"
 Private privateVariableString As String = "Private variable string"
 ```
+
 <class name>Class
 
 '
