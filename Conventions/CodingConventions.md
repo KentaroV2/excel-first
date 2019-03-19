@@ -1,10 +1,16 @@
-# Conding Conventions
+# Coding Conventions
 
 ## Class Naming Conventions
-A class name should be a class name followed by a word;"Class" with upper camel cases. Here is examples:
+
+A class name should be a class name followed by a word;"Class" with upper camel cases.
+Here is examples:
 
 * A class name of **ExcelFirst** is `ExcelFirstClass`.
 * A class name of **Logger** is `LoggerClass`.
+
+## Constant and Variable Naming Conventions
+At public scope, a constant should be upper snake case. Here is examples:
+
 
 
 <class name>Class
@@ -43,11 +49,6 @@ A class name should be a class name followed by a word;"Class" with upper camel 
 
 
 
-## Class Naming Conventions
-Class name should be class name followed by "Class" with upper camel case. Here is examples:
-* A class name of "ExcelFirst" is `ExcelFirstClass`.
-* A class name of "Logger" is `LoggerClass`.
-
 ## Object Naming Conventions
 Object name should be:
 * upper camel case for private, and
@@ -60,5 +61,4 @@ Object name should be:
 
 
 
-## Constant and Variable Naming Conventions
 ## Structured Coding Conventions
