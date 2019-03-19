@@ -1,13 +1,5 @@
 # Coding Conventions
 
-## Class Naming Conventions
-
-A class name should be a class name followed by a word;"Class" with upper camel cases.
-Here is examples:
-
-* A class name of **ExcelFirst** is `ExcelFirstClass`.
-* A class name of **Logger** is `LoggerClass`.
-
 ## Constant and Variable Naming Conventions
 
 At public scope, a constant should be **upper-snake**-case and a variable should be **upper-camel**-case. Here is examples:
@@ -22,6 +14,18 @@ At private scope, a constant should be **lower-snake**-case and a variable shoul
 ```vb
 Private const private_Constant_String As String = "Private constant string"
 Private privateVariableString As String = "Private variable string"
+```
+
+## Class Naming Conventions
+
+A class name should be a class name followed by a word;"Class" with upper camel cases.
+Here is examples:
+
+```vb
+Dim excelFirst As ExcelFirstClass
+Set excelFirst = New ExcelFirstClass
+Dim logger As LoggerClass
+Set logger = New LoggerClass
 ```
 
 <class name>Class
