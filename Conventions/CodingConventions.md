@@ -11,12 +11,14 @@ Here is examples:
 ## Constant and Variable Naming Conventions
 
 At public scope, a constant should be **upper-snake**-case and a variable should be **upper-camel**-case. Here is examples:
+
 ```vb
 Public const Global_Constant_String As String = "Global constant string"
 Public GlobalVariableString As String = "Global variable string"
 ```
 
 At private scope, a constant should be **lower-snake**-case and a variable should be **lower-camel**-case. Here is examples:
+
 ```vb
 Private const private_Constant_String As String = "Private constant string"
 Private privateVariableString As String = "Private variable string"
