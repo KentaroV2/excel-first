@@ -17,11 +17,11 @@ _Under construction_
 ## Usage
 
 - Import all *.bas files and *.cls files under a root directory to your Excel file.
-- If needed, import each "ExamplesFor*.bas" to learn how to use corresponding class.
+- If needed, import each "ExamplesFor*.bas" under **Examples** directory to learn how to use corresponding class.
 
 ## Contribution
 
-- Follow coding conventions.
+- Follow conventions (that are contents files under **Conventions** directory).
 
 ## Licence
 
