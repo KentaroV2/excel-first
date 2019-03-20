@@ -18,8 +18,14 @@ Private privateVariableString As String = "Private variable string"
 
 ## Class Naming Conventions
 
-A class name should be a class name followed by a word;"Class" with upper camel cases.
-Here is examples:
+A class name should be a class name followed by a word;"Class" with **upper-camel**-case or **lower-snake**-case depending on public scope or private scope respecyively. Here is examples:
+
+```vb
+Dim foo As ExcelFirstClass
+Dim bar As LoggerClass
+```
+A public member or property should be **upper-camel**-case. Here is examples:
+
 
 ```vb
 Dim excelFirst As ExcelFirstClass
