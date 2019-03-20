@@ -16,12 +16,14 @@ _Under construction_
 
 ## Usage
 
-- Import all *.bas files and *.cls files under a root directory to your Excel file.
-- If needed, import each "ExamplesFor*.bas" under **Examples** directory to learn how to use corresponding class.
+- Import all __*.bas__ files and __*.cls__ files under a **root** directory to your Excel file.
+- If needed, import each __ExamplesFor*class_name*.bas__ under **Examples** directory to learn how to use corresponding class.
 
 ## Contribution
 
-- Follow conventions (that are contents files under **Conventions** directory).
+- Open an issue.
+- Fork from the **develop** branch to __feature/issue-#*issue_number*__ branch. (ie. **feature/issue-#123** )
+- Issue a pull request to merge the **feature** branch to the **develop** branch.
 
 ## Licence
 
