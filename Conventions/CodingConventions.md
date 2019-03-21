@@ -41,13 +41,15 @@ Dim myWallet As Long
 
 A property should be **upper-camel**-case with a corresponding private member. Here is examples:
 
-
 ```vb
-Dim myScriptingDictionary As Object
 Dim myWallet As Long
+
+...
+
+Public Property Get Wallet()
+  Wallet = myWallet
+End Property
 ```
-
-
 
 <class name>Class
 
