@@ -28,23 +28,27 @@ Dim bar As LoggerClass
 A public member should be **upper-camel**-case. Here is examples:
 
 ```vb
-Dim ClassName As String
-Dim NumberOfInstances As Long
+Public ClassName As String
+PUblic NumberOfInstances As Long
 ```
 
 A private member should be **lower-camel**-case followed by "my". Here is examples:
 
 ```vb
-Dim myScriptingDictionary As Object
-Dim myWallet As Long
+Private myScriptingDictionary As Object
+Private myWallet As Long
 ```
 
 A property should be **upper-camel**-case with a corresponding private member. Here is examples:
 
 ```vb
-Dim myWallet As Long
+Private myWallet As Long
 
 ...
+
+Public Property Let Wallet()
+  myWallet = Wallet
+End Property
 
 Public Property Get Wallet()
   Wallet = myWallet
