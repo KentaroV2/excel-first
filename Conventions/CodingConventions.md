@@ -24,15 +24,30 @@ A class name should be a class name followed by a word;"Class" with **upper-came
 Dim foo As ExcelFirstClass
 Dim bar As LoggerClass
 ```
-A public member or property should be **upper-camel**-case. Here is examples:
+
+A public member should be **upper-camel**-case. Here is examples:
+
+```vb
+Dim ClassName As String
+Dim NumberOfInstances As Long
+```
+
+A private member should be **lower-camel**-case followed by "my". Here is examples:
+
+```vb
+Dim myScriptingDictionary As Object
+Dim myWallet As Long
+```
+
+A property should be **upper-camel**-case with a corresponding private member. Here is examples:
 
 
 ```vb
-Dim excelFirst As ExcelFirstClass
-Set excelFirst = New ExcelFirstClass
-Dim logger As LoggerClass
-Set logger = New LoggerClass
+Dim myScriptingDictionary As Object
+Dim myWallet As Long
 ```
+
+
 
 <class name>Class
 
