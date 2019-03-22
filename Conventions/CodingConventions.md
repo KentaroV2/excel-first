@@ -10,8 +10,7 @@ Public SleepingHours as Long = 6
 
 ...
 
-SleepingHours = 16 ' Sleep more on weekend.
-
+SleepingHours = 16 ' Sleeping hours on weekend is longer than that on weekday.
 ```
 
 At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
