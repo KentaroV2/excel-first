@@ -5,8 +5,13 @@
 At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples:
 
 ```vb
-Public Hours_A_Days diameter const Global_Constant_String As String = "Global constant string"
-Public GlobalVariableString As String = "Global variable string"
+Public const Working_Hours as Long = 8
+Public SleepingHours as Long = 6
+
+...
+
+SleepingHours = 16 ' Sleep more on weekend.
+
 ```
 
 At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
