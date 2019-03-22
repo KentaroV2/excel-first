@@ -5,12 +5,13 @@
 At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples:
 
 ```vb
-Public const Working_Hours as Long = 8
-Public SleepingHours as Long = 6
+Public const Hours_A_Day As Integer = 24
 
-...
+Dim WorkingHours As Integer
+Dim SleepingHours As Integer
 
-SleepingHours = 16 ' Sleeping hours on weekend is longer than that on weekday.
+WorkingHours = 8
+SleepingHours = Hours_A_Day - WorkingHours
 ```
 
 At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
