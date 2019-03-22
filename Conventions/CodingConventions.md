@@ -2,14 +2,21 @@
 
 ## Constant and Variable Naming Conventions
 
-At public scope, a constant should be **upper-snake**-case and a variable should be **upper-camel**-case. Here is examples:
+At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples:
 
 ```vb
-Public const Global_Constant_String As String = "Global constant string"
+Public Hours_A_Days diameter const Global_Constant_String As String = "Global constant string"
 Public GlobalVariableString As String = "Global variable string"
 ```
 
-At private scope, a constant should be **lower-snake**-case and a variable should be **lower-camel**-case. Here is examples:
+At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
+
+```vb
+Private const private_Constant_String As String = "Private constant string"
+Private privateVariableString As String = "Private variable string"
+```
+
+At private scope with limited lifecycle (ie. constants/variables in functions/subroutines), a constant or a variable should be **lower-snake**-case or **lower-camel**-case followed by one underscore; "_", respectively. Here is examples:
 
 ```vb
 Private const private_Constant_String As String = "Private constant string"
@@ -55,28 +62,15 @@ Public Property Get Wallet()
 End Property
 ```
 
+
+
+
 <class name>Class
 
 '
 ' Standard modules
 '   "<class name>Module"
 '   "ExamplesFor<class name>Class"
-'
-' Public scope:
-'   Constants - upper snake case
-'     "Global_Constants"
-'   Variables - upper camel case
-'     "GlobalVariables"
-'     "PublicMethod"
-'     "PublicProperty"
-'     "Argument"
-'
-' Private scope:
-'   Constants - lower snake case
-'     "private_Constant"
-'   Variables - lower camel case
-'     "privateMethod"
-'     "privateProperty"
 '
 ' Private and lifecycle-limited:
 '   Constants - lower snake case plus underscore
