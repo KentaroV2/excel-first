@@ -17,14 +17,19 @@ SleepingHours = Hours_A_Day - WorkingHours
 At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
 
 ```vb
-Private const private_Constant_String As String = "Private constant string"
-Private privateVariableString As String = "Private variable string"
+Private const munching_Hours As Integer = 2
+
+Private Dim actualWorkingHours As Integer
+
+actualWorkingHours = WorkingHours - munching_Hours
 ```
 
 At private scope with limited lifecycle (ie. constants/variables in functions/subroutines), a constant or a variable should be **lower-snake**-case or **lower-camel**-case followed by one underscore; "_", respectively. Here is examples:
 
 ```vb
-Private const private_Constant_String As String = "Private constant string"
+Private const nap_Hours_ As Integer = 1
+
+Private const munching_Hoursprivate_Constant_String As String = "Private constant string"
 Private privateVariableString As String = "Private variable string"
 ```
 
