@@ -32,6 +32,21 @@ Private truthWorkingHours_ As Integer
 truthWorkingHours_ = actualWorkingHours - nap_Hours_
 ```
 
+Any name that conflicts with reserved words should the name followed by two underscores; **"__"**. Here is examples where two variables; **`error__`** and **`debug__`** are defined.
+
+```vb
+Public Enum Logger_Level '* Logger levels.
+  Off
+  Fatal
+  Error__
+  Warn
+  Info
+  Debug__
+  Trace
+  All
+End Enum
+```
+
 ## Class Naming Conventions
 
 A class name should be a class name followed by a word; **"Class"** with **upper-camel**-case or **lower-camel**-case depending on public scope or private scope respecyively. Here is examples where **`DogClass`** at public scope and **`CatClass`** at private scope are defined.
@@ -83,6 +98,21 @@ Public Property Get stolenFoods()
 End Property
 ```
 
+## Object Naming Conventions
+
+A public object should be **upper-camel**-case. Here is examples where two objects; **`Jack`** and **`Tom`** are defined.
+
+```vb
+Public Jack As Dog
+Public Tom As Dog
+```
+
+A private object should be **lower-camel**-case. Here is examples where two objects; **`Jack`** and **`Tom`** are defined.
+
+```vb
+Private biteOwner
+Private stealFood
+```
 
 
 <class name>Class
@@ -105,7 +135,6 @@ End Property
 
 
 
-## Object Naming Conventions
 Object name should be:
 * upper camel case for private, and
 * Object name 
