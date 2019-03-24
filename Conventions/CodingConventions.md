@@ -23,7 +23,7 @@ Private actualWorkingHours As Integer
 actualWorkingHours = WorkingHours - munching_Hours
 ```
 
-At private scope with limited lifecycle (ie. constants/variables in functions/subroutines), a constant or a variable should be **lower-snake**-case or **lower-camel**-case followed by one underscore; "_", respectively. Here is examples:
+At private scope with limited lifecycle (ie. constants/variables in functions/subroutines), a constant or a variable should be **lower-snake**-case or **lower-camel**-case followed by one underscore; "_", respectively. Here is examples where **`nap_Hours_`** as a constant and **`truthWorkingHours_`** as a variable are defined.
 
 ```vb
 Private const nap_Hours_ As Integer = 1
