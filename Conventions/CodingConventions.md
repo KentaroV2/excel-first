@@ -18,7 +18,6 @@ At private scope, a constant or a variable should be **lower-snake**-case or **l
 
 ```vb
 Private const munching_Hours As Integer = 2
-
 Private Dim actualWorkingHours As Integer
 
 actualWorkingHours = WorkingHours - munching_Hours
@@ -28,9 +27,9 @@ At private scope with limited lifecycle (ie. constants/variables in functions/su
 
 ```vb
 Private const nap_Hours_ As Integer = 1
+Private truthWorkingHours_ As Integer
 
-Private const munching_Hoursprivate_Constant_String As String = "Private constant string"
-Private privateVariableString As String = "Private variable string"
+truthWorkingHours_ = actualWorkingHours - nap_Hours_
 ```
 
 ## Class Naming Conventions
