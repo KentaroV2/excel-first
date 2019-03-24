@@ -7,18 +7,18 @@ At public scope, a constant or a variable should be **upper-snake**-case or **up
 ```vb
 Public const Hours_A_Day As Integer = 24
 
-Dim WorkingHours As Integer
-Dim SleepingHours As Integer
+Public WorkingHours As Integer
+Public SleepingHours As Integer
 
 WorkingHours = 8
 SleepingHours = Hours_A_Day - WorkingHours
 ```
 
-At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples:
+At private scope, a constant or a variable should be **lower-snake**-case or **lower-camel**-case, respectively. Here is examples where **`munching_Hours`** as a constant and **`actualWorkingHours`** as a variable are defined.
 
 ```vb
 Private const munching_Hours As Integer = 2
-Private Dim actualWorkingHours As Integer
+Private actualWorkingHours As Integer
 
 actualWorkingHours = WorkingHours - munching_Hours
 ```
