@@ -1,6 +1,6 @@
 Attribute VB_Name = "ExamplesForLoggerClass"
 '! @file ExamplesForLoggerClass.bas
-'! @brief Provides some examples that help you understanding how to use the "LoggerClass" class.
+'! This file provides some examples that help you understanding how to use the "LoggerClass" class.
 '! @copyright MIT
 Option Explicit
 
@@ -9,14 +9,15 @@ Option Explicit
 Sub ExampleForLoggerClass_UseLogger()
   
   ' Instantiate logger class.
-  Dim logger As LoggerClass
-  Set logger = New LoggerClass
+  Dim Logger As LoggerClass
+  Set Logger = New LoggerClass
   
   ' Set ERROR as logger level.
   Dim exitStatus As Long
-  exitStatus = logger.SetLevel(loggerLevel.ERROR_LEVEL)
+  exitStatus = Logger.SetLevel(Logger_Level.Error__)
+  
   ' Write ERROR log.
-  exitStatus = logger.Error("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined category) - This is an ERROR message."
+  exitStatus = Logger.Error("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined category) - This is an ERROR message."
   
 End Sub
 
@@ -25,20 +26,20 @@ End Sub
 Sub ExampleForLoggerClass_WriteLogs()
   
   ' Instantiate logger class.
-  Dim logger As LoggerClass
-  Set logger = New LoggerClass
+  Dim Logger As LoggerClass
+  Set Logger = New LoggerClass
   
   ' Use "With" statement to program in efficient way.
-  With logger
+  With Logger
     ' Set INFO as logger level.
     Dim exitStatus As Long
-    exitStatus = .SetLevel(loggerLevel.INFO_LEVEL)
+    exitStatus = .SetLevel(Logger_Level.Info)
     ' Write logs under INFO level.
     exitStatus = .Fatal("This is a FATAL message.") ' Logged.
     exitStatus = .Error("This is an ERROR message.") ' Logged.
     exitStatus = .Warn("This is a WARN message.") ' Logged.
     exitStatus = .Info("This is an INFO message.") ' Logged.
-    exitStatus = .Debug_("This is an DEBUG message.") ' (Not logged.)
+    exitStatus = .Debug__("This is an DEBUG message.") ' (Not logged.)
     exitStatus = .Trace("This is an TRACE message.") ' (Not logged.)
   End With
   
@@ -49,23 +50,23 @@ End Sub
 Sub ExampleForLoggerClass_WriteLogsWithFunctionNames()
   
   ' Instantiate logger class.
-  Dim logger As LoggerClass
-  Set logger = New LoggerClass
+  Dim Logger As LoggerClass
+  Set Logger = New LoggerClass
   
   ' Use "With" statement to program in efficient way.
-  With logger
+  With Logger
     ' Set INFO as logger level.
     Dim exitStatus As Long
-    exitStatus = .SetLevel(loggerLevel.INFO_LEVEL)
+    exitStatus = .SetLevel(Logger_Level.Info)
     ' Write logs under INFO level.
     exitStatus = .Info("This is an INFO message.") ' Write INFO log.
-    exitStatus = .StackFunctionName("foo") ' Stack function name. This line is expected to be written at the beginning of "foo" function.
+    exitStatus = .StackName("foo") ' Stack function name. This line is expected to be written at the beginning of "foo" function.
     exitStatus = .Info("This is an INFO message.") ' Write INFO log.
-    exitStatus = .StackFunctionName("bar") ' Stack function name. This line is expected to be written at the beginning of "bar" function.
+    exitStatus = .StackName("bar") ' Stack function name. This line is expected to be written at the beginning of "bar" function.
     exitStatus = .Info("This is an INFO message.") ' Write INFO log.
-    exitStatus = .UnstackFunctionName() 'Unstack function name. This line is expected to be written at the end of "bar" function.
+    exitStatus = .UnstackName() 'Unstack function name. This line is expected to be written at the end of "bar" function.
     exitStatus = .Info("This is an INFO message.") ' Write INFO log.
-    exitStatus = .UnstackFunctionName() 'Unstack function name. This line is expected to be written at the end of "foo" function.
+    exitStatus = .UnstackName() 'Unstack function name. This line is expected to be written at the end of "foo" function.
     exitStatus = .Info("This is an INFO message.") ' Write INFO log.
   End With
 

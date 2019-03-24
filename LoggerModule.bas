@@ -1,16 +1,18 @@
 Attribute VB_Name = "LoggerModule"
 '! @file LoggerModule.bas
-'! @brief Provides logging functions in reference to log4j.
+'! This module provides logging functions in reference to log4j.
 '! @copyright MIT
 Option Explicit
+' Declare Sleep function to release CPU resources periodically.
+Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 ' Define enumerations.
-Public Enum loggerLevel '* Represents logger levels.
-  OFF_LEVEL
-  FATAL_LEVEL
-  ERROR_LEVEL
-  WARN_LEVEL
-  INFO_LEVEL
-  DEBUG_LEVEL
-  TRACE_LEVEL
-  ALL_LEVEL
+Public Enum Logger_Level '* Logger levels.
+  Off
+  Fatal
+  Error__
+  Warn
+  Info
+  Debug__
+  Trace
+  All
 End Enum
