@@ -2,7 +2,7 @@
 
 ## Constant and Variable Naming Conventions
 
-At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples where **`WorkingHours`** and **`SleepingHours`** are defined.
+At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples where **`Hours_A_Day`** as a constant, and **`WorkingHours`** and **`SleepingHours`** as variables are defined.
 
 ```vb
 Public const Hours_A_Day As Integer = 24
