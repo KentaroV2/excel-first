@@ -69,6 +69,22 @@ Public Property Get Owner()
 End Property
 ```
 
+A private property should be **lower-camel**-case and a corresponding member should be **lower-camel**-case followed by a word; **"my"**. Here is examples where a public property; **`stolenFoods`** and a corresponding member; **`myStolenFoods`** are defined.
+
+```vb
+Private myStolenFoods As String
+
+Public stolenFoods Let Owner()
+  myStolenFoods = stolenFoods
+End Property
+
+Public Property Get stolenFoods()
+  stolenFoods = myStolenFoods
+End Property
+```
+
+
+
 <class name>Class
 
 '
