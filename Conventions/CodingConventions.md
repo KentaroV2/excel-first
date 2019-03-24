@@ -34,45 +34,40 @@ truthWorkingHours_ = actualWorkingHours - nap_Hours_
 
 ## Class Naming Conventions
 
-A class name should be a class name followed by a word;"Class" with **upper-camel**-case or **lower-snake**-case depending on public scope or private scope respecyively. Here is examples:
+A class name should be a class name followed by a word; **"Class"** with **upper-camel**-case or **lower-camel**-case depending on public scope or private scope respecyively. Here is examples where **`DogClass`** at public scope and **`CatClass`** at private scope are defined.
 
 ```vb
-Dim foo As ExcelFirstClass
-Dim bar As LoggerClass
+Dim Dog As DogClass
+Dim cat As catClass
 ```
 
-A public member should be **upper-camel**-case. Here is examples:
+A public method should be **upper-camel**-case. Here is examples where two methods; **`BiteBurglers`** and **`EatFood`** are defined.
 
 ```vb
-Public ClassName As String
-PUblic NumberOfInstances As Long
+Public BiteBurglers
+Public EatFood
 ```
 
-A private member should be **lower-camel**-case followed by "my". Here is examples:
+A private method should be **lower-camel**-case . Here is examples where two methods; **`biteOwner`** and **`stealFood`** are defined.
 
 ```vb
-Private myScriptingDictionary As Object
-Private myWallet As Long
+Private biteOwner
+Private stealFood
 ```
 
-A property should be **upper-camel**-case with a corresponding private member. Here is examples:
+A public property should be **upper-camel**-case and a corresponding member should be **lower-camel**-case followed by a word; **"my"**. Here is examples where a public property; **`Owner`** and a corresponding member; **`myOwner`** are defined.
 
 ```vb
-Private myWallet As Long
+Private myOwner As String
 
-...
-
-Public Property Let Wallet()
-  myWallet = Wallet
+Public Property Let Owner()
+  myOwner = Owner
 End Property
 
-Public Property Get Wallet()
-  Wallet = myWallet
+Public Property Get Owner()
+  Owner = myOwner
 End Property
 ```
-
-
-
 
 <class name>Class
 
