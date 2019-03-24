@@ -49,7 +49,7 @@ End Enum
 
 ## Class Naming Conventions
 
-A class name should be a class name followed by a word; **"Class"** with **upper-camel**-case or **lower-camel**-case depending on public scope or private scope respecyively. Here is examples where **`DogClass`** at public scope and **`CatClass`** at private scope are defined.
+A class name should be a class name followed by a word; **"Class"** with **upper-camel**-case or **lower-camel**-case depending on public scope or private scope respecyively. Here is examples where a public class; **`DogClass`** and a private class; **`CatClass`** are defined.
 
 ```vb
 Dim Dog As DogClass
@@ -103,47 +103,33 @@ End Property
 A public object should be **upper-camel**-case. Here is examples where two objects; **`Jack`** and **`Tom`** are defined.
 
 ```vb
-Public Jack As Dog
-Public Tom As Dog
+Public Jack As DogClass
+Public Jill As DogClass
 ```
 
-A private object should be **lower-camel**-case. Here is examples where two objects; **`Jack`** and **`Tom`** are defined.
+A private object should be **lower-camel**-case. Here is examples where two objects; **`jim`** and **`chris`** are defined.
 
 ```vb
-Private biteOwner
-Private stealFood
+Private tom As DogClass
+Private mary As DogClass
 ```
 
+## Example Naming Conventions
 
-<class name>Class
+An example name should consists of:
+- **"ExamplesFor"** plus class name,
+- an underscore; **"_"**, and
+- description with **upper-camel**-case.
+Here is examples where a method; **"BiteBurglers"** of an object; **"DogClass"** is used.
 
-'
-' Standard modules
-'   "<class name>Module"
-'   "ExamplesFor<class name>Class"
-'
-' Private and lifecycle-limited:
-'   Constants - lower snake case plus underscore
-'     "constant_In_Method_"
-'   Variables - lower camel case plus underscore
-'     "variableInMethod_"
-'     "variableInProperty_"
-'
-' Note) Constants or variables followed by two underscores are used to avoid conflictions with reserved words.
-'   "debug__"
-'   "error__"
+```vb
+Sub ExamplesForDogClass_BiteBurglers()
+  Public Jack As DogClass
+  set Jack = New DogClass
+  Jack.BiteBurglers()
+End Sub
+```
 
-
-
-Object name should be:
-* upper camel case for private, and
-* Object name 
-
-<class name> aaa
-
-`test`
-
-
-
+The **"ExamplesFor"** plus class name is also used as an object name of standard module.
 
 ## Structured Coding Conventions
