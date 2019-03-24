@@ -117,7 +117,7 @@ Private mary As DogClass
 ## Example Naming Conventions
 
 An example name should consists of:
-- **"ExamplesFor"** plus class name,
+- **"ExamplesFor"** and a class name,
 - an underscore; **"_"**, and
 - description with **upper-camel**-case.
 Here is examples where a method; **"BiteBurglers"** of an object; **"DogClass"** is used.
@@ -130,6 +130,6 @@ Sub ExamplesForDogClass_BiteBurglers()
 End Sub
 ```
 
-The **"ExamplesFor"** plus class name is also used as an object name of standard module.
+The **"ExamplesFor" and a class name** is also used as an object name of standard module.
 
 ## Structured Coding Conventions
