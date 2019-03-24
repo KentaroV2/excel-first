@@ -5,10 +5,10 @@
 At public scope, a constant or a variable should be **upper-snake**-case or **upper-camel**-case, respectively. Here is examples where **`Hours_A_Day`** as a constant, and **`WorkingHours`** and **`SleepingHours`** as variables are defined.
 
 ```vb
-Public const Hours_A_Day As Integer = 24
+Public const Hours_A_Day As Integer = 24 ' Public constant
 
-Public WorkingHours As Integer
-Public SleepingHours As Integer
+Public WorkingHours As Integer ' Public variable
+Public SleepingHours As Integer ' Public variable
 
 WorkingHours = 8
 SleepingHours = Hours_A_Day - WorkingHours
