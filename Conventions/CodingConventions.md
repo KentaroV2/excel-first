@@ -135,4 +135,7 @@ Public Jack As DogClass
 End Sub
 ```
 
-The **"ExamplesFor" and a class name** is also used as an object name of standard module.
+The **"ExamplesFor" and a class name** is also used as an object name of standard module. Here is sampel for `LoggerClass` class.
+* A name of Standard Module that implementes `LoggerClass` class is **LoggerClass**.
+* A name of Standard Module that teaches how to use `LoggerClass` class is **ExamplesForLoggerClass**.
+* A name of Standard Module that defines common constants including `LoggerClass` class and declaration of windows libraries is **CommonModule**.
