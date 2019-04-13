@@ -16,7 +16,7 @@ Option Explicit
 ' Don't edit the followings:
 ' --------------------------------------------------------------------------------------------------------------
 ' Define members.
-Private myName As String '* Object name
+Private myName As String '* Name. This name is also used for logging purpose.
 Private myStuckNames As String '* A set of names displayed with log
 Private myLevel As Long '* Log level designated by Logger_Level enumeration
 
@@ -103,7 +103,7 @@ Public Sub Log(Level As String, Message As String, Optional ExitStatus As Long)
     Dim displayedIndent_ As String
     displayedIndent_ = String(UBound(names_) - LBound(names_) + 1, ">")
   Else
-    category_ = "(undefined category)"
+    category_ = Undefined
     displayedIndent_ = ""
   End If
   Debug.Print _
@@ -136,7 +136,7 @@ Public Sub Error(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Error__) Then
     Call Me.Log("ERROR", Message)
   End If
-  Call Me.ReleaseCpuResource
+  Me.ReleaseCpuResource
   If Not IsMissing(ExitStatus) Then
     ExitStatus = Exit_Status__Success
   End If
@@ -145,7 +145,7 @@ End Sub
 '* Log warning message.
 '* @param[in] Message message logged with name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Function Warn(Message As String, Optional ExitStatus As Long) As Long
+Public Sub Warn(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Warn) Then
     Call Me.Log("WARN", Message)
   End If
@@ -153,12 +153,12 @@ Public Function Warn(Message As String, Optional ExitStatus As Long) As Long
   If Not IsMissing(ExitStatus) Then
     ExitStatus = Exit_Status__Success
   End If
-End Function
+End Sub
 
 '* Log information message.
 '* @param[in] Message message logged with name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Function Info(Message As String, Optional ExitStatus As Long) As Long
+Public Sub Info(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Info) Then
     Call Me.Log("INFO", Message)
   End If
@@ -166,12 +166,12 @@ Public Function Info(Message As String, Optional ExitStatus As Long) As Long
   If Not IsMissing(ExitStatus) Then
     ExitStatus = Exit_Status__Success
   End If
-End Function
+End Sub
 
 '* Log debug message.
 '* @param[in] Message message logged with name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Function Debug__(Message As String, Optional ExitStatus As Long) As Long
+Public Sub Debug__(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Debug__) Then
     Call Me.Log("DEBUG", Message)
   End If
@@ -179,12 +179,12 @@ Public Function Debug__(Message As String, Optional ExitStatus As Long) As Long
   If Not IsMissing(ExitStatus) Then
     ExitStatus = Exit_Status__Success
   End If
-End Function
+End Sub
 
 '* Log trace message.
 '* @param[in] Message message logged with name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Function Trace(Message As String, Optional ExitStatus As Long) As Long
+Public Sub Trace(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Trace) Then
     Call Me.Log("TRACE", Message)
   End If
@@ -192,7 +192,7 @@ Public Function Trace(Message As String, Optional ExitStatus As Long) As Long
   If Not IsMissing(ExitStatus) Then
     ExitStatus = Exit_Status__Success
   End If
-End Function
+End Sub
 
 '* Release CPU resource periodically to prevent applications from freezing user operations.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.

@@ -18,7 +18,7 @@ Sub ExampleForLoggerClass_UseLogger()
   ' Set ERROR as logger level.
   Logger.SetLevel (Logger_Level.Error__)
   ' Write ERROR log.
-  Logger.Error ("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined category) - This is an ERROR message."
+  Logger.Error ("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined) - This is an ERROR message."
   
 End Sub
 
@@ -34,18 +34,18 @@ Sub ExampleForLoggerClass_WriteLogs()
     ' Set INFO as logger level.
     .SetLevel (Logger_Level.Info)
     ' Write logs under INFO level.
-    .Fatal ("This is a FATAL message.") ' Logged.
-    .Error ("This is an ERROR message.") ' Logged.
-     .Warn ("This is a WARN message.") ' Logged.
-    .Info ("This is an INFO message.") ' Logged.
-    .Debug__ ("This is an DEBUG message.") ' (Not logged.)
-    .Trace ("This is an TRACE message.") ' (Not logged.)
+    .Fatal ("This is a FATAL message.") ' "yyyy-mm-dd hh:mm:ss [FATAL]  (undefined) - This is a FATAL message."
+    .Error ("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined) - This is an ERROR message."
+     .Warn ("This is a WARN message.") ' "yyyy-mm-dd hh:mm:ss [WARN]  (undefined) - This is a WARN message."
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO]  (undefined) - This is an INFO message."
+    .Debug__ ("This is an DEBUG message.") ' Not logged.
+    .Trace ("This is an TRACE message.") ' Not logged.
   End With
   
 End Sub
 
-'* This subrouutine teaches how to write logs with functions names.
-Sub ExampleForLoggerClass_WriteLogsWithFunctionNames()
+'* This subrouutine teaches how to write logs with names.
+Sub ExampleForLoggerClass_WriteLogsWithNames()
   
   ' Instantiate logger class.
   Dim Logger As LoggerClass
@@ -56,15 +56,15 @@ Sub ExampleForLoggerClass_WriteLogsWithFunctionNames()
     ' Set INFO as logger level.
     .SetLevel (Logger_Level.Info)
     ' Write logs under INFO level.
-    .Info ("This is an INFO message.") ' Write INFO log.
-    .StackName ("foo") ' Stack function name. This line is expected to be written at the beginning of "foo" function.
-    .Info ("This is an INFO message.") ' Write INFO log.
-    .StackName ("bar") ' Stack function name. This line is expected to be written at the beginning of "bar" function.
-    .Info ("This is an INFO message.") ' Write INFO log.
-    .UnstackName   'Unstack function name. This line is expected to be written at the end of "bar" function.
-    .Info ("This is an INFO message.") ' Write INFO log.
-    .UnstackName 'Unstack function name. This line is expected to be written at the end of "foo" function.
-    .Info ("This is an INFO message.") ' Write INFO log.
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO]  (undefined) - This is an INFO message."
+    .StackName ("foo") ' "yyyy-mm-dd hh:mm:ss [INFO] > foo - Start."
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO] > foo - This is an INFO message."
+    .StackName ("bar") ' "yyyy-mm-dd hh:mm:ss [INFO] >> bar - Start."
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO] >> bar - This is an INFO message."
+    .UnstackName   ' "yyyy-mm-dd hh:mm:ss [INFO] >> bar - End."
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO] > foo - This is an INFO message."
+    .UnstackName ' "yyyy-mm-dd hh:mm:ss [INFO] > foo - End."
+    .Info ("This is an INFO message.") ' "yyyy-mm-dd hh:mm:ss [INFO]  (undefined) - This is an INFO message."
   End With
 
 End Sub
