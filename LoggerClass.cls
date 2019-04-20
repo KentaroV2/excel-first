@@ -7,80 +7,110 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-'! @file LoggerClass.cls
-'! This class provides logging functions in reference to log4j.
-'! @copyright MIT
 Option Explicit
-' --------------------------------------------------------------------------------------------------------------
+'! This provides (a) original logging functions in reference to log4j and (b) object names, method names, and property names logging functions with log messages.
+'! @copyright MIT
+'
 ' Edit the followings as needed:
 ' --------------------------------------------------------------------------------------------------------------
 ' Don't edit the followings:
-Private Const first_Level_Delimiter As String = vbTab '* First-level delimiter
-Private Const exit_Status__Success As Long = 0 '* Exit status of success
+' --------------------------------------------------------------------------------------------------------------
 ' Define members.
-Private myNames As String '* A set of names displayed with log
-Private myLevel As Long '* Log level designated by LoggerLevel enumeration
+Private myName As String '* Name. This name is also used for logging purpose.
+Private myParent As Object '* Parent object.
+Private myStuckNames As String '* A set of names displayed with log message.
+Private myLevel As Long '* Log level designated by Logger_Level enumeration.
 
-'* Initialize class.
+'* Initialize the class.
 Private Sub Class_Initialize()
-  myNames = ""
+  myName = Logger_Name
   myLevel = Logger_Level.Off
 End Sub
 
-'* Set logger level. Logger levels are defined by Logger_Level enumeration.
-'* @param[in] Level_ logger Logger level defined by Logger_Level enumeration
-'* @return exit status. Zero means success.
-Public Function SetLevel(Level As Long) As Long
-  myLevel = Level
-  SetLevel = exit_Status__Success
-End Function
+'* Terminate this class.
+Private Sub Class_Terminate()
+  Set myParent = Nothing
+End Sub
 
-'* Get logger level.
-Public Property Get GetLevel()
-  GetLevel = myLevel
+'* Set Name property.
+Public Property Let Name(Name As String)
+  myName = Name
 End Property
 
-Public Function StackName(Name As String) As Long
-  StackName = exit_Status__Success
-  If (myNames <> "") Then
-    myNames = myNames & first_Level_Delimiter
-  End If
-  myNames = myNames + Name
-  Dim exitStatus_ As Long
-  exitStatus_ = Me.Info("Start.")
-End Function
+'* Get Name property.
+Public Property Get Name() As String
+  Name = myName
+End Property
 
-Public Function UnstackName() As Long
-  If (myNames <> "") Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Info("End.")
+'* Set Parent property.
+Public Property Set Parent(Parent As Object)
+  Set myParent = Parent
+End Property
+
+'* Get Parent property.
+Public Property Get Parent() As Object
+  Set Parent = myParent
+End Property
+
+'* Set logger level. Logger levels are defined by Logger_Level enumeration.
+'* @param[in] Level Logger level defined by "Logger_Level" enumeration.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub SetLevel(Level As Long, Optional ExitStatus As Long)
+  myLevel = Level
+  ExitStatus = Exit_Status.Success
+End Sub
+
+'* Get logger level.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return Logger level defined by "Logger_Level" enumeration.
+Public Property Get GetLevel(Optional ExitStatus As Long) As Long
+  GetLevel = myLevel
+  ExitStatus = Exit_Status.Success
+End Property
+
+'* Stack a name which logged messages indicate. The last stuck name (a top of pile) is always logged.
+'* @param[in] StuckName Stuck name. The name consists of (a) object name and (b) method name or property name. When no name is stuck, "(undefined category)" is logged instead.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub StackName(StuckName As String, Optional ExitStatus As Long)
+  If (myStuckNames <> "") Then
+    myStuckNames = myStuckNames & First_Level_Delimiter
+  End If
+  myStuckNames = myStuckNames + StuckName
+  Me.Info ("Start.")
+  ExitStatus = Exit_Status.Success
+End Sub
+
+'* Unstack a name which logged messages indicate. A top of stuck names (a top of pile) is removed.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub UnstackName(Optional ExitStatus As Long)
+  If (myStuckNames <> "") Then
+    Me.Info ("End.")
     Dim names_ As Variant
-    names_ = Split(myNames, first_Level_Delimiter)
+    names_ = Split(myStuckNames, First_Level_Delimiter)
     If (UBound(names_) > 0) Then
       ReDim Preserve names_(UBound(names_) - 1)
-      myNames = Join(names_, first_Level_Delimiter)
+      myStuckNames = Join(names_, First_Level_Delimiter)
     Else
-      myNames = Empty
+      myStuckNames = Empty
     End If
   End If
-  UnstackName = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Private Function GetDateAndTime() As Long
-  Debug.Print Format(Now(), "yyyy-mm-dd hh:nn:ss")
-  GetDateAndTime = exit_Status__Success
-End Function
-
-Public Function Log(Level As String, Message As String) As Long
-  If (myNames <> "") Then
+'* Log message with name including object name, method name, and property name.
+'* @param[in] Level log level used to decide whether name and message should be logged or not with referring myLevel member.
+'* @param[in] Message message logged with stuck name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Log(Level As String, Message As String, Optional ExitStatus As Long)
+  If (myStuckNames <> "") Then
     Dim names_ As Variant
-    names_ = Split(myNames, first_Level_Delimiter)
+    names_ = Split(myStuckNames, First_Level_Delimiter)
     Dim category_ As String
     category_ = names_(UBound(names_))
     Dim displayedIndent_ As String
     displayedIndent_ = String(UBound(names_) - LBound(names_) + 1, ">")
   Else
-    category_ = "(undefined category)"
+    category_ = Undefined
     displayedIndent_ = ""
   End If
   Debug.Print _
@@ -88,65 +118,79 @@ Public Function Log(Level As String, Message As String) As Long
     "[" & Level & "] " & _
     displayedIndent_ & " " & _
     category_ & " - " & Message
-  Log = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Fatal(Message As String) As Long
+'* Log fatal message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Fatal(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Fatal) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("FATAL", Message)
+    Call Me.Log("FATAL", Message)
   End If
   Me.ReleaseCpuResource
-  Fatal = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Error(Message As String) As Long
+'* Log error message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Error(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Error__) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("ERROR", Message)
+    Call Me.Log("ERROR", Message)
   End If
   Me.ReleaseCpuResource
-  Error = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Warn(Message As String) As Long
+'* Log warning message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Warn(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Warn) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("WARN", Message)
+    Call Me.Log("WARN", Message)
   End If
   Me.ReleaseCpuResource
-  Warn = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Info(Message As String) As Long
+'* Log information message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Info(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Info) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("INFO", Message)
+    Call Me.Log("INFO", Message)
   End If
   Me.ReleaseCpuResource
-  Info = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Debug__(Message As String) As Long
+'* Log debug message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Debug__(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Debug__) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("DEBUG", Message)
+    Call Me.Log("DEBUG", Message)
   End If
   Me.ReleaseCpuResource
-  Debug__ = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function Trace(Message As String) As Long
+'* Log trace message.
+'* @param[in] Message message logged with name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub Trace(Message As String, Optional ExitStatus As Long)
   If (myLevel >= Logger_Level.Trace) Then
-    Dim exitStatus_ As Long
-    exitStatus_ = Me.Log("TRACE", Message)
+    Call Me.Log("TRACE", Message)
   End If
   Me.ReleaseCpuResource
-  Trace = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
 
-Public Function ReleaseCpuResource() As Long
+'* Release CPU resource periodically to prevent applications from freezing user operations.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+Public Sub ReleaseCpuResource(Optional ExitStatus As Long)
   Sleep 0
   DoEvents
-  ReleaseCpuResource = exit_Status__Success
-End Function
+  ExitStatus = Exit_Status.Success
+End Sub
