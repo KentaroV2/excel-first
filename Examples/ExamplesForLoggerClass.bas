@@ -16,7 +16,11 @@ Sub ExampleForLoggerClass_UseLogger()
   Set Logger = New LoggerClass
   
   ' Set ERROR as logger level.
-  Logger.SetLevel (Logger_Level.Error__)
+  Dim exitStatus_ As Long
+  ' Call Logger.SetLevel(Logger_Level.Error__)
+  Call Logger.SetLevel(Logger_Level.Error__, exitStatus_)
+  Call Logger.Error(CStr(exitStatus_))
+  
   ' Write ERROR log.
   Logger.Error ("This is an ERROR message.") ' "yyyy-mm-dd hh:mm:ss [ERROR]  (undefined) - This is an ERROR message."
   
