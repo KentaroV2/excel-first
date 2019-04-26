@@ -8,7 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'! @file ExcelFirstClass.cls
 '! This class provides a set of VBA (Visual Basic for Applications) libraries running on Microsoft Excel for
 '! (a) taking advantage of original Excel functionalities and for
 '! (b) smoothly deploying your applications to your business since most of companies use Microsoft Excel compliant with companies IT policies.
@@ -29,10 +28,10 @@ Private myAutomaticCalculationFlag As Boolean '* Automatic-calculation flag
 
 '* Initialize this class.
 Private Sub Class_Initialize()
-  myName = Excel_First_Name
+  Me.Name = Excel_First_Name
   Set myLogger = New LoggerClass
   Set myExcelWorkbooks = CreateObject("Scripting.Dictionary")
-  '* @todo Set thisWorkbook object here.
+  Call Me.BindExcelWorkbook("")
 End Sub
 
 '* Terminate this class.
@@ -63,6 +62,18 @@ End Property
 '* Get Parent property.
 Public Property Get Parent() As Object
   Set Parent = myParent
+End Property
+
+'* Get ExcelWorkbook property.
+Public Property Get ExcelWorkbook(ByVal Name As String) As ExcelWorkbookClass
+  If (Name = "") Then
+    Name = This
+  End If
+  If (myExcelWorkbooks.exists(Name) = False) Then
+    Set ExcelWorkbook = Nothing
+  Else
+    Set ExcelWorkbook = myExcelWorkbooks(Name)
+  End If
 End Property
 
 '* Get logger property.
@@ -110,40 +121,46 @@ Property Let AutomaticCalculationFlag(AutomaticCalculationFlag As Boolean)
 End Property
 
 '* Bind ExcelWorkbook.
-'* @param[in] Name. When this Name is blank, return a ThisWorkbook object (running this program). When this Name doesn't have any file extention like "xls" or "xlsx", find Excel file with available file extention.
+'* @param[in] Name. When this Name is blank, set Application.ThisWorkbook (running this program) to ExcelWorkbook. When this Name doesn't have any file extention like "xls" or "xlsx", find Excel file with available file extention.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-'* @return ExcelWorkbookClass
-Public Function BindExcelWorkbook(Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
+'* @return ExcelFirstClass. Self.
+Public Function BindExcelWorkbook(ByVal Name As String, Optional ExitStatus As Long) As ExcelFirstClass
 Initialize:
   On Error GoTo Error
-  myLogger.StackName (myName & "." & "BindExcelWorkbook")
+  Call Me.Logger.StackName(Me.Name & "." & "BindExcelWorkbook")
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
-  Set BindExcelWorkbook = Nothing
 Execute:
   Dim excelWorkbook_ As ExcelWorkbookClass
   Set excelWorkbook_ = New ExcelWorkbookClass
   Set excelWorkbook_.Parent = Me
-  Set excelWorkbook_.Logger = Me.Logger '* @todo Eliminate relations between Logger object and any other object.
+  Set excelWorkbook_.Logger = Me.Logger
   Call excelWorkbook_.Bind(Name, exitStatus_)
   If (exitStatus_ = Exit_Status.Workbook_Is_Not_Found) Then
     Set excelWorkbook_ = Nothing
+  Else
+    If (Name = "") Then
+      Name = This
+    End If
+    Set myExcelWorkbooks(Name) = excelWorkbook_
   End If
-  Set BindExcelWorkbook = excelWorkbook_
 Exit__:
-  myLogger.UnstackName
+  Me.Logger.UnstackName
   ExitStatus = exitStatus_
+  Set BindExcelWorkbook = Me
   Exit Function
 Error:
   exitStatus_ = Err.Number
-  myLogger.Error ("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Function
 
 '* Release CPU resource periodically to prevent applications from freezing user operations.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Sub ReleaseCpuResource(Optional ExitStatus As Long)
+'* @return ExcelFirstClass. Self.
+Public Function ReleaseCpuResource(Optional ExitStatus As Long) As ExcelFirstClass
   Sleep 0
   DoEvents
   ExitStatus = Exit_Status.Success
-End Sub
+  Set ReleaseCpuResource = Me
+End Function

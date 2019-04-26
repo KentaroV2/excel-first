@@ -19,10 +19,10 @@ Sub ExamplesForExcelFirstClass_DisableAndEnableScreenUpdating()
   ' Set INFO as logger level.
   Dim logger_ As LoggerClass
   Set logger_ = excelFirst_.Logger
-  logger_.SetLevel (Logger_Level.Info)
+  Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
-  logger_.StackName ("ExamplesForExcelFirstClass_DisableAndEnableScreenUpdating")
+  Call logger_.StackName("ExamplesForExcelFirstClass_DisableAndEnableScreenUpdating")
   
   ' Disable screen updating
   excelFirst_.ScreenUpdatingFlag = False
@@ -31,7 +31,7 @@ Sub ExamplesForExcelFirstClass_DisableAndEnableScreenUpdating()
   excelFirst_.ScreenUpdatingFlag = True
   
   ' Unstack name.
-  logger_.UnstackName
+  Call logger_.UnstackName
   
 End Sub
 
@@ -45,22 +45,23 @@ Sub ExamplesForExcelFirstClass_BindExcelWorkbook()
   ' Set INFO as logger level.
   Dim logger_ As LoggerClass
   Set logger_ = excelFirst_.Logger
-  logger_.SetLevel (Logger_Level.Info)
+  Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
-  logger_.StackName ("ExamplesForExcelFirstClass_BindExcelWorkbook")
+  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorkbook")
   
   ' Bind ExcelWorkbook.
   Dim excelWorkbook_ As ExcelWorkbookClass
-  Set excelWorkbook_ = excelFirst_.BindExcelWorkbook("")
-  logger_.Info ("excelWorkbook_.Name = " & excelWorkbook_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbook - excelWorkbook_.Name = This"
+  Set excelWorkbook_ = excelFirst_.BindExcelWorkbook("").ExcelWorkbook("")
+  Call logger_.Info("excelWorkbook_.Name = " & excelWorkbook_.Name)  ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbook - excelWorkbook_.Name = This"
   
   ' Unstack name.
-  logger_.UnstackName
+  Call logger_.UnstackName
   
 End Sub
 
 '* This example teaches how to bind ExcelWorkbook and ExcelWorksheet.
+'* @attention This example requires "Screen" Worksheet.
 Sub ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet()
 
   ' Instantiate First class.
@@ -70,19 +71,15 @@ Sub ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet()
   ' Set INFO as logger level.
   Dim logger_ As LoggerClass
   Set logger_ = excelFirst_.Logger
-  logger_.SetLevel (Logger_Level.Info)
+  Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
-  logger_.StackName ("ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet")
+  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet")
   
-  ' Bind ExcelWorkbook.
-  Dim excelWorkbook_ As ExcelWorkbookClass
-  Set excelWorkbook_ = excelFirst_.BindExcelWorkbook("")
-  
-  ' Bind ExcelWorksheet.
+  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
-  Set excelWorksheet_ = excelWorkbook_.BindExcelWorksheet("Screen")
-  logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Worksheet.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Name = Screen"
+  Set excelWorksheet_ = excelFirst_.ExcelWorkbook("").BindExcelWorksheet("Screen").ExcelWorksheet("Screen")
+  logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Name = Screen"
   
   ' Unstack name.
   logger_.UnstackName
@@ -100,24 +97,22 @@ Sub ExamplesForExcelFirstClass_ClearWorksheet()
   ' Set INFO as logger level.
   Dim logger_ As LoggerClass
   Set logger_ = excelFirst_.Logger
-  logger_.SetLevel (Logger_Level.Info)
+  Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
-  logger_.StackName ("ExamplesForExcelFirstClass_ClearWorksheet")
+  Call logger_.StackName("ExamplesForExcelFirstClass_ClearWorksheet")
   
-  ' Bind ExcelWorkbook.
-  Dim excelWorkbook_ As ExcelWorkbookClass
-  Set excelWorkbook_ = excelFirst_.BindExcelWorkbook("")
-  
-  ' Bind ExcelWorksheet.
+  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
-  Set excelWorksheet_ = excelWorkbook_.BindExcelWorksheet("Screen")
+  Set excelWorksheet_ = excelFirst_.ExcelWorkbook("").BindExcelWorksheet("Screen").ExcelWorksheet("Screen")
   
   ' Clear Worksheet.
-  excelWorksheet_.Clear
+  excelFirst_.ScreenUpdatingFlag = False
+  Call excelWorksheet_.Clear
+  excelFirst_.ScreenUpdatingFlag = True
   
   ' Unstack name.
-  logger_.UnstackName
+  Call logger_.UnstackName
   
 End Sub
 

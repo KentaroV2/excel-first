@@ -20,6 +20,8 @@ Option Explicit
 Private myName As String '* Name (also needed for logging purpose). The name also represent Worksheet name.
 Private myParent As Object '* Parent object. This object should be ExcelWorkbook.
 Private myWorksheet As Worksheet '* Worksheet object.
+Private myWorksheetForEditingTable As Worksheet '* Worksheet object for editing table.
+Private myWorksheetForReadingTable As Worksheet '* Worksheet object for reading table.
 Private myLogger As LoggerClass '* Logger object
 
 '* Initialize this class.
@@ -57,28 +59,50 @@ Public Property Set Logger(Logger As Object)
   Set myLogger = Logger
 End Property
 
-'* Get Parent property.
+'* Get Logger property.
 Public Property Get Logger() As Object
   Set Logger = myLogger
 End Property
 
-'* Set Workbook property.
+'* Set Worksheet property.
 Property Set Worksheet(Worksheet__ As Worksheet)
   Set myWorksheet = Worksheet__
 End Property
 
-'* Get Workbook property.
+'* Get Worksheet property.
 Property Get Worksheet() As Worksheet
   Set Worksheet = myWorksheet
+End Property
+
+'* Set WorksheetForEditingTable property.
+Property Set WorksheetForEditingTable(WorksheetForEditingTable As Worksheet)
+  Set myWorksheetForEditingTable = WorksheetForEditingTable
+End Property
+
+'* Get WorksheetForEditingTable property.
+Property Get WorksheetForEditingTable() As Worksheet
+  Set WorksheetForEditingTable = myWorksheetForEditingTable
+End Property
+
+
+'* Set WorksheetForReadingTable property.
+Property Set WorksheetForReadingTable(WorksheetForReadingTable As Worksheet)
+  Set myWorksheetForReadingTable = WorksheetForReadingTable
+End Property
+
+'* Get WorksheetForReadingTable property.
+Property Get WorksheetForReadingTable() As Worksheet
+  Set WorksheetForReadingTable = myWorksheetForReadingTable
 End Property
 
 '* Bind Worksheet.
 '* @param[in] Name. This name should be Worksheet name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Sub Bind(Name As String, Optional ExitStatus As Long)
+'* @return ExcelWorksheetClass. Self.
+Public Function BindWorksheet(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
-  myLogger.StackName (myName & "." & "Bind")
+  Call Me.Logger.StackName(Me.Name & "." & "BindWorksheet")
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
@@ -88,32 +112,84 @@ Execute:
   Set workbook_ = parent_.Workbook
   Dim worksheets_ As Sheets
   Set worksheets_ = workbook_.Worksheets
-  Dim worksheet_ As Worksheet, foundFlag_ As Boolean
+  Dim worksheet_ As Worksheet
   For Each worksheet_ In worksheets_
       If (worksheet_.Name = Name) Then
-        foundFlag_ = True
-        Dim foundWorksheet_ As Worksheet
-        Set foundWorksheet_ = worksheet_
+        Set Me.Worksheet = worksheet_
+        Me.Name = Name
       End If
   Next
-  If foundFlag_ = True Then
-    Me.Logger.Info (foundWorksheet_.Name)
-    Set Me.Worksheet = workbook_.Worksheets(foundWorksheet_.Name)
-  Else
+  If (Me.Worksheet Is Nothing) Then
     exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
+  Else
+    Set Me.WorksheetForEditingTable = Nothing
+    Set Me.WorksheetForReadingTable = Nothing
   End If
 Exit__:
-  myLogger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
-  Exit Sub
+  Set BindWorksheet = Me
+  Exit Function
 Error:
-  ' Set return value as error number.
   exitStatus_ = Err.Number
-  ' Log error.
-  myLogger.Error ("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-  ' Go to exit function.
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
-End Sub
+End Function
+
+'* Bind Worksheet for table.
+'* @param[in] Name. This name should be Worksheet name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Call Me.Logger.StackName(Me.Name & "." & "BindWorksheetForTable")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Dim parent_ As Object
+  Set parent_ = Me.Parent
+  Dim workbook_ As Workbook
+  Set workbook_ = parent_.Workbook
+  Dim worksheets_ As Sheets
+  Set worksheets_ = workbook_.Worksheets
+  Dim worksheet_ As Worksheet
+  For Each worksheet_ In worksheets_
+      If ( _
+        Left_Parentheses & _
+        worksheet_.Name & _
+        Right_Parentheses _
+        = Name _
+      ) Then
+        Set Me.WorksheetForEditingTable = worksheet_
+      ElseIf ( _
+        Left_Parentheses & Left_Parentheses & _
+        worksheet_.Name & _
+        Right_Parentheses & Right_Parentheses _
+        = Name _
+      ) Then
+        Set Me.WorksheetForReadingTable = worksheet_
+      End If
+  Next
+  If ( _
+    Me.WorksheetForEditingTable Is Nothing _
+    Or _
+    Me.WorksheetForEditingTable Is Nothing _
+  ) Then
+    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
+  Else
+    Set Me.Worksheet = Nothing
+  End If
+Exit__:
+  Call Me.Logger.UnstackName
+  ExitStatus = exitStatus_
+  Set BindWorksheetForTable = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
+End Function
 
 '* Clear Worksheet.
 '* @param[in] FontName. (Optional) Font name.
@@ -155,14 +231,11 @@ Execute:
   End With
   activeWorksheet_.Activate
 Exit__:
-  myLogger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
   Exit Sub
 Error:
-  ' Set return value as error number.
   exitStatus_ = Err.Number
-  ' Log error.
-  myLogger.Error ("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-  ' Go to exit function.
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Sub
