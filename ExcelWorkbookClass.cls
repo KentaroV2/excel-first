@@ -20,10 +20,10 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name. This name represents file name except directory path and file extention; (ie. xls, xlsx). This name is also used for logging purpose.
 Private myParent As Object '* Parent object.
-Private myLogger As LoggerClass '* Logger object
+Private myLogger As Object '* Logger object.
 Private myWorkbook As Workbook '* Workbook object
-Private myPasswordFlag As Boolean '* Password flag
 Private myExcelWorksheets As Object '* Set of ExcelWorksheet objects
+Private myPasswordFlag As Boolean '* Password flag
 
 '* Initialize this class.
 Private Sub Class_Initialize()
@@ -34,7 +34,7 @@ End Sub
 
 '* Terminate this class.
 Private Sub Class_Terminate()
-  ' Release all keys in myWorksheets object.
+  Set myParent = Nothing
   Dim key_ As Variant
   For Each key_ In myExcelWorksheets
     Set myExcelWorksheets(key_) = Nothing
@@ -66,7 +66,7 @@ Public Property Set Logger(Logger As Object)
   Set myLogger = Logger
 End Property
 
-'* Get Parent property.
+'* Get Logger property.
 Public Property Get Logger() As Object
   Set Logger = myLogger
 End Property
@@ -86,7 +86,7 @@ Public Property Get ExcelWorksheet(ByVal Name As String) As ExcelWorksheetClass
   If (Name = "") Then
     Name = This
   End If
-  If (myExcelWorksheets.exists(Name) = False) Then
+  If (myExcelWorksheets.Exists(Name) = False) Then
     Set ExcelWorksheet = Nothing
   Else
     Set ExcelWorksheet = myExcelWorksheets(Name)
@@ -114,7 +114,7 @@ Execute:
     exitStatus_ = Exit_Status.Workbook_Is_Not_Found
   End If
 Exit__:
-  Me.Logger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
   Set Bind = Me
   Exit Function
@@ -163,7 +163,7 @@ End Function
 '* @param[in] Name. This name should be a Worksheet name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorkbookClass. Self.
-Public Function BindExcelWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
+Public Function BindExcelWorksheetForTable(ByVal Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
 Initialize:
   On Error GoTo Error
   Call Me.Logger.StackName(Me.Name & "." & "BindExcelWorksheetForTable")
@@ -176,8 +176,12 @@ Execute:
   Set excelWorksheet_.Logger = Me.Logger
   Call excelWorksheet_.BindWorksheetForTable(Name, exitStatus_)
   If (exitStatus_ = Exit_Status.Worksheet_Is_Not_Found) Then
-    Stop
     Set excelWorksheet_ = Nothing
+  Else
+    If (Name = "") Then
+      Name = This
+    End If
+    Set myExcelWorksheets(Name) = excelWorksheet_
   End If
 Exit__:
   Call Me.Logger.UnstackName

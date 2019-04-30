@@ -19,10 +19,10 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name (also needed for logging purpose). The name also represent Worksheet name.
 Private myParent As Object '* Parent object. This object should be ExcelWorkbook.
+Private myLogger As LoggerClass '* Logger object
 Private myWorksheet As Worksheet '* Worksheet object.
 Private myWorksheetForEditingTable As Worksheet '* Worksheet object for editing table.
 Private myWorksheetForReadingTable As Worksheet '* Worksheet object for reading table.
-Private myLogger As LoggerClass '* Logger object
 
 '* Initialize this class.
 Private Sub Class_Initialize()
@@ -116,7 +116,6 @@ Execute:
   For Each worksheet_ In worksheets_
       If (worksheet_.Name = Name) Then
         Set Me.Worksheet = worksheet_
-        Me.Name = Name
       End If
   Next
   If (Me.Worksheet Is Nothing) Then
@@ -124,66 +123,12 @@ Execute:
   Else
     Set Me.WorksheetForEditingTable = Nothing
     Set Me.WorksheetForReadingTable = Nothing
+    Me.Name = Name
   End If
 Exit__:
   Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
   Set BindWorksheet = Me
-  Exit Function
-Error:
-  exitStatus_ = Err.Number
-  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-  GoTo Exit__
-End Function
-
-'* Bind Worksheet for table.
-'* @param[in] Name. This name should be Worksheet name.
-'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-'* @return ExcelWorksheetClass. Self.
-Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-Initialize:
-  On Error GoTo Error
-  Call Me.Logger.StackName(Me.Name & "." & "BindWorksheetForTable")
-  Dim exitStatus_ As Long
-  exitStatus_ = Exit_Status.Success
-Execute:
-  Dim parent_ As Object
-  Set parent_ = Me.Parent
-  Dim workbook_ As Workbook
-  Set workbook_ = parent_.Workbook
-  Dim worksheets_ As Sheets
-  Set worksheets_ = workbook_.Worksheets
-  Dim worksheet_ As Worksheet
-  For Each worksheet_ In worksheets_
-      If ( _
-        Left_Parentheses & _
-        worksheet_.Name & _
-        Right_Parentheses _
-        = Name _
-      ) Then
-        Set Me.WorksheetForEditingTable = worksheet_
-      ElseIf ( _
-        Left_Parentheses & Left_Parentheses & _
-        worksheet_.Name & _
-        Right_Parentheses & Right_Parentheses _
-        = Name _
-      ) Then
-        Set Me.WorksheetForReadingTable = worksheet_
-      End If
-  Next
-  If ( _
-    Me.WorksheetForEditingTable Is Nothing _
-    Or _
-    Me.WorksheetForEditingTable Is Nothing _
-  ) Then
-    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
-  Else
-    Set Me.Worksheet = Nothing
-  End If
-Exit__:
-  Call Me.Logger.UnstackName
-  ExitStatus = exitStatus_
-  Set BindWorksheetForTable = Me
   Exit Function
 Error:
   exitStatus_ = Err.Number
@@ -208,7 +153,8 @@ Public Sub Clear( _
   Optional ColumnWidth As Long = Column_Width, _
   Optional HorizontalAlignment As Long = Horizontal_Alignment, _
   Optional VerticalAlignment As Long = Vertical_Alignment, _
-  Optional ExitStatus As Long)
+  Optional ExitStatus As Long _
+)
 Initialize:
   On Error GoTo Error
   myLogger.StackName (myName & "." & "Clear")
@@ -239,3 +185,102 @@ Error:
   Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Sub
+
+'* Bind Worksheet for table.
+'* @param[in] Name. This name should be Worksheet name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Call Me.Logger.StackName(Me.Name & "." & "BindWorksheetForTable")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Dim parent_ As Object
+  Set parent_ = Me.Parent
+  Dim workbook_ As Workbook
+  Set workbook_ = parent_.Workbook
+  Dim worksheets_ As Sheets
+  Set worksheets_ = workbook_.Worksheets
+  Dim worksheet_ As Worksheet
+  For Each worksheet_ In worksheets_
+      If ( _
+        worksheet_.Name = _
+          Left_Parentheses & _
+          Name & _
+          Right_Parentheses _
+      ) Then
+        Set Me.WorksheetForEditingTable = worksheet_
+      ElseIf ( _
+        worksheet_.Name = _
+          Left_Parentheses & _
+          Left_Parentheses & _
+          Name & _
+          Right_Parentheses & _
+          Right_Parentheses _
+      ) Then
+        Set Me.WorksheetForReadingTable = worksheet_
+      End If
+  Next
+  If ( _
+    Me.WorksheetForEditingTable Is Nothing _
+    Or _
+    Me.WorksheetForReadingTable Is Nothing _
+  ) Then
+    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
+  Else
+    Set Me.Worksheet = Nothing
+    Me.Name = Name
+  End If
+Exit__:
+  Call Me.Logger.UnstackName
+  ExitStatus = exitStatus_
+  Set BindWorksheetForTable = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
+End Function
+
+'* Create table.
+'* @param[in] SetOfFields. Set of fields.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function CreateTable(SetOfFields As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+  '* @todo do something.
+End Function
+
+'* Filter table.
+'* @param[in] SetOfFilters. Set of filtered fields.
+'* @param[in] SetOfSorts. Set of sorted fields.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function FilterTable(SetOfFiltedFields As String, SetOfSortedFields As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+  '* @todo do something.
+End Function
+
+'* Read table.
+'* @param[out] SetOfRecords. Set of records
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function ReadTable(SetOfRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+  '* @todo do something.
+End Function
+
+'* Update table.
+'* @param[in] SetOfFilters. Set of filtered fields.
+'* @param[in] SetOfItems. Set of items.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function UpdateTable(SetOfFiltedFields As String, SetOfItems As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+  '* @todo do something.
+End Function
+
+'* Delete table.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function DeleteTable(Optional ExitStatus As Long) As ExcelWorksheetClass
+  '* @todo do something.
+End Function

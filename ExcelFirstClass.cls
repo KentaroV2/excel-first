@@ -20,8 +20,8 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name. This name is also used for logging purpose.
 Private myParent As Object '* Parent object.
-Private myExcelWorkbooks As Object ' Set of ExcelWorkbook objects.
-Private myLogger As LoggerClass '* Logger object.
+Private myLogger As Object '* Logger object.
+Private myExcelWorkbooks As Object '* Set of ExcelWorkbook objects.
 Private myScreenUpdatingFlag As Boolean '* Screen-updating flag
 Private myEventsFlag As Boolean '* Events flag
 Private myAutomaticCalculationFlag As Boolean '* Automatic-calculation flag
@@ -29,19 +29,20 @@ Private myAutomaticCalculationFlag As Boolean '* Automatic-calculation flag
 '* Initialize this class.
 Private Sub Class_Initialize()
   Me.Name = Excel_First_Name
-  Set myLogger = New LoggerClass
+  Set Me.Parent = Nothing
+  Set Me.Logger = New LoggerClass
   Set myExcelWorkbooks = CreateObject("Scripting.Dictionary")
   Call Me.BindExcelWorkbook("")
 End Sub
 
 '* Terminate this class.
 Private Sub Class_Terminate()
-  Set myParent = Nothing
+  Set Me.Parent = Nothing
+  Set Me.Logger = Nothing
   Dim key_ As Variant
   For Each key_ In myExcelWorkbooks
     Set myExcelWorkbooks(key_) = Nothing
   Next
-  Set myLogger = Nothing
 End Sub
 
 '* Set Name property.
@@ -64,21 +65,26 @@ Public Property Get Parent() As Object
   Set Parent = myParent
 End Property
 
+'* Set Logger property.
+Public Property Set Logger(Logger As Object)
+  Set myLogger = Logger
+End Property
+
+'* Get Logger property.
+Public Property Get Logger() As Object
+  Set Logger = myLogger
+End Property
+
 '* Get ExcelWorkbook property.
 Public Property Get ExcelWorkbook(ByVal Name As String) As ExcelWorkbookClass
   If (Name = "") Then
     Name = This
   End If
-  If (myExcelWorkbooks.exists(Name) = False) Then
+  If (myExcelWorkbooks.Exists(Name) = False) Then
     Set ExcelWorkbook = Nothing
   Else
     Set ExcelWorkbook = myExcelWorkbooks(Name)
   End If
-End Property
-
-'* Get logger property.
-Property Get Logger() As LoggerClass
-    Set Logger = myLogger
 End Property
 
 '* Get screen updating flag.
@@ -145,7 +151,7 @@ Execute:
     Set myExcelWorkbooks(Name) = excelWorkbook_
   End If
 Exit__:
-  Me.Logger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
   Set BindExcelWorkbook = Me
   Exit Function
