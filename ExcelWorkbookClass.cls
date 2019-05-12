@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'! This provides attributes and methods for Microsoft Excel Workbook.
+'! This class provides attributes and methods for Microsoft Excel Workbook.
 '! This class contains (a) encryption attributes (b) Workbook object, and (c) data manipulating functions.
 '! This class is created by the ExcelFirst class in order to bind a Workbook where the ExcelFirst class runs when the ExcelFirst class runs is initialized.
 '! @copyright MIT
