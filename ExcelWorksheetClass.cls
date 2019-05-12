@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'! This provides attributes and methods for Microsoft Excel Worksheet.
+'! This class provides attributes and methods for Microsoft Excel Worksheet.
 '! This class contains (a) Worksheet object, and (c) data manipulating functions.
 '! @copyright MIT
 '
@@ -19,7 +19,7 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name (also needed for logging purpose). The name also represent Worksheet name.
 Private myParent As Object '* Parent object. This object should be ExcelWorkbook.
-Private myLogger As LoggerClass '* Logger object
+Private myLogger As Object '* Logger object
 Private myWorksheet As Worksheet '* Worksheet object.
 Private myWorksheetForEditingTable As Worksheet '* Worksheet object for editing table.
 Private myWorksheetForReadingTable As Worksheet '* Worksheet object for reading table.
@@ -41,7 +41,7 @@ End Property
 
 '* Get Name property.
 Property Get Name() As String
-    Name = myName
+  Name = myName
 End Property
 
 '* Set Parent property.
@@ -163,17 +163,21 @@ Initialize:
 Execute:
   Dim activeWorksheet_ As Worksheet
   Set activeWorksheet_ = Me.Parent.Workbook.ActiveSheet
-  Me.Worksheet.Activate
-  ' Decorate Worksheet.
-  With Me.Worksheet.Cells
-    .Clear
-    .Font.Name = FontName
-    .Font.Size = FontSize
-    .Font.Color = FontColor
-    .RowHeight = RowHeight
-    .ColumnWidth = ColumnWidth
-    .HorizontalAlignment = HorizontalAlignment
-    .VerticalAlignment = VerticalAlignment
+  With Me.Worksheet
+    .Activate
+    If (.AutoFilterMode) Then
+      .Cells.AutoFilter
+    End If
+    With .Cells
+      .Clear
+      .Font.Name = FontName
+      .Font.Size = FontSize
+      .Font.Color = FontColor
+      .RowHeight = RowHeight
+      .ColumnWidth = ColumnWidth
+      .HorizontalAlignment = HorizontalAlignment
+      .VerticalAlignment = VerticalAlignment
+    End With
   End With
   activeWorksheet_.Activate
 Exit__:
@@ -249,38 +253,424 @@ End Function
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
 Public Function CreateTable(SetOfFields As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-  '* @todo do something.
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "CreateTable")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  With Me
+    Set .Worksheet = .WorksheetForEditingTable
+    .Clear
+    Set .Worksheet = .WorksheetForReadingTable
+    .Clear
+    Set .Worksheet = Nothing
+  End With
+  If (SetOfFields = "") Then
+    Call Err.Raise(Exit_Status.SetOfFields_Is_Not_Defined, , "SetOfFields_Is_Blank")
+  End If
+  Dim Fields As Variant
+  Fields = Split(SetOfFields, First_Level_Delimiter)
+  Dim worksheet_ As Worksheet
+  '* @todo Should we clear not only text but also other elements like drawings?
+  With Me.WorksheetForEditingTable
+    .Cells.Clear
+    .Range( _
+        .Cells(WorksheetRow.Top, WorksheetColumn.Left__), _
+        .Cells(WorksheetRow.Top, WorksheetColumn.Left__ + UBound(Fields) - LBound(Fields)) _
+      ) = Fields
+  End With
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set CreateTable = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
 End Function
 
-'* Filter table.
-'* @param[in] SetOfFilters. Set of filtered fields.
-'* @param[in] SetOfSorts. Set of sorted fields.
+'* Filter records.
+'* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields.
+'* @param[in] SetOfSortedFields. (Optional) Set of sorted fields.
+'* @param[in] DuplicatesRemovingField. (Optional) Duplicates removing field.
+'* @param[out] FilteredRecords. (Optional) Set of filtered records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function FilterTable(SetOfFiltedFields As String, SetOfSortedFields As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-  '* @todo do something.
+Public Function FilterRecords(Optional SetOfFiltedFields As String, Optional SetOfSortedFields As String, Optional DuplicatesRemovingField As String, Optional FilteredRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "FilterRecords")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Dim worksheet_ As Worksheet
+  Set worksheet_ = Me.WorksheetForEditingTable
+  With worksheet_
+    Dim fields_ As Variant
+    fields_ = .Range( _
+      .Cells(TableRow.Field, TableColumn.Left__), _
+      .Cells(TableRow.Field, .Columns.Count).End(xlToLeft) _
+    )
+    .Cells.AutoFilter
+    If Not (.AutoFilterMode) Then
+      .Cells.AutoFilter
+    End If
+    If (SetOfFiltedFields <> "") Then
+      Dim filteredFields_ As Variant
+      filteredFields_ = Split(SetOfFiltedFields, Second_Level_Delimiter)
+      Dim indexOfFilteredFields_ As Long
+      For indexOfFilteredFields_ = LBound(filteredFields_) To UBound(filteredFields_)
+        Dim filteredField_ As Variant
+        filteredField_ = Split(filteredFields_(indexOfFilteredFields_), First_Level_Delimiter)
+        Dim indexOfFields_ As Long
+        For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+          If (filteredField_(FieldAndValue.Field) = fields_(TableRow.Field, indexOfFields_)) Then
+            Exit For
+          End If
+        Next
+        If ( _
+          indexOfFields_ >= LBound(fields_) _
+          And _
+          indexOfFields_ <= UBound(fields_) _
+        ) Then
+          If (InStr(filteredField_(FieldAndValue.Value), Or_Operator) = 0) Then
+            Dim filters_ As Variant
+            filters_ = Array(filteredField_(FieldAndValue.Value))
+          Else
+            filters_ = Split(filteredField_(FieldAndValue.Value), Or_Operator)
+          End If
+          Call .Cells.AutoFilter( _
+            indexOfFields_, _
+            filters_, _
+            xlFilterValues _
+          )
+        End If
+      Next
+    End If
+    With .AutoFilter.Sort
+      With .SortFields
+        .Clear
+        If (SetOfSortedFields <> "") Then
+          Dim sortedFields_ As Variant
+          sortedFields_ = Split(SetOfSortedFields, Second_Level_Delimiter)
+          Dim indexOfSortedFields_ As Long
+          For indexOfSortedFields_ = LBound(sortedFields_) To UBound(sortedFields_)
+            Dim sortedField_ As Variant
+            sortedField_ = Split(sortedFields_(indexOfSortedFields_), First_Level_Delimiter)
+            For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+              If (sortedField_(FieldAndValue.Field) = fields_(TableRow.Field, indexOfFields_)) Then
+                Exit For
+              End If
+            Next
+            If ( _
+              indexOfFields_ >= LBound(fields_) _
+              And _
+              indexOfFields_ <= UBound(fields_) _
+            ) Then
+            .Add _
+              Key:=worksheet_.Range( _
+                worksheet_.Columns(indexOfFields_), _
+                worksheet_.Columns(indexOfFields_) _
+              ), _
+              SortOn:=xlSortOnValues, _
+              Order:=CLng(sortedField_(FieldAndValue.Value)), _
+              DataOption:=xlSortNormal
+            End If
+          Next
+        End If
+      End With
+      .Header = xlYes
+      .MatchCase = False
+      .Orientation = xlTopToBottom
+      .SortMethod = xlPinYin
+      .Apply
+    End With
+    Dim filteredAndSortedRecords As Range
+    Set filteredAndSortedRecords = .Range( _
+      .Cells(TableRow.Field, TableColumn.Left__), _
+      .Cells( _
+        .Cells(.Rows.Count, TableColumn.Left__).End(xlUp).Row, _
+        .Cells(TableRow.Field, .Columns.Count).End(xlToLeft).Column _
+      ) _
+    ).SpecialCells(xlCellTypeVisible)
+  End With
+  With Me.WorksheetForReadingTable
+    .Cells.Clear
+    filteredAndSortedRecords.Copy .Range( _
+      .Cells(TableRow.Field, TableColumn.Left__), _
+      .Cells(TableRow.Field, TableColumn.Left__) _
+    )
+    If (DuplicatesRemovingField <> "") Then
+      For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+        If (DuplicatesRemovingField = fields_(TableRow.Field, indexOfFields_)) Then
+          Exit For
+        End If
+      Next
+      .Range( _
+        .Cells(TableRow.Field, TableColumn.Left__), _
+        .Cells( _
+          .Cells(.Rows.Count, TableColumn.Left__).End(xlUp).Row, _
+          .Cells(TableRow.Field, .Columns.Count).End(xlToLeft).Column _
+        ) _
+      ).RemoveDuplicates _
+        Columns:=Array(indexOfFields_), _
+        Header:=xlYes
+'* @todo Fix a bug that defining two or more fields doesn't work properly (by removing duplicates field by field.).
+'    If (SetOfRemovingDuplicates <> "") Then
+'      Dim duplicatesRemovingFields_ As Variant
+'      duplicatesRemovingFields_ = Split(SetOfRemovingDuplicates, First_Level_Delimiter)
+'      Dim duplicatesRemovingColumns_() As Long
+'      ReDim duplicatesRemovingColumns_(0)
+'      Dim indexOfDuplicatesRemovingFields_ As Long
+'      For indexOfDuplicatesRemovingFields_ = LBound(duplicatesRemovingFields_) To UBound(duplicatesRemovingFields_)
+'        For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+'          If (duplicatesRemovingFields_(indexOfDuplicatesRemovingFields_) = fields_(TableRow.Field, indexOfFields_)) Then
+'            duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_)) = indexOfFields_
+'            ReDim Preserve duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_) + 1)
+'            Exit For
+'          End If
+'        Next
+'      Next
+'      ReDim Preserve duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_) - 1)
+'      .Range( _
+'        .Cells(TableRow.Field, TableColumn.Left), _
+'        .Cells( _
+'          .Cells(.Rows.Count, TableColumn.Left).End(xlUp).Row, _
+'          .Cells(TableRow.Field, .Columns.Count).End(xlToLeft).Column _
+'        ) _
+'      ).RemoveDuplicates _
+'        Columns:=.Evaluate(duplicatesRemovingColumns_), _
+'        Header:=xlYes
+    End If
+  End With
+  Call Me.ReadRecords(FilteredRecords)
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set FilterRecords = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
 End Function
 
-'* Read table.
-'* @param[out] SetOfRecords. Set of records
+'* Read records.
+'* @param[out] Records. Set of records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function ReadTable(SetOfRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
-  '* @todo do something.
+Public Function ReadRecords(Records As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "ReadRecords")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  With Me.WorksheetForReadingTable
+    Set Records = _
+      .Range( _
+        .Cells(TableRow.Field, TableColumn.Left__), _
+        .Cells( _
+          .Cells(.Rows.Count, TableColumn.Left__).End(xlUp).Row, _
+          .Cells(TableRow.Field, .Columns.Count).End(xlToLeft).Column _
+        ) _
+      )
+  End With
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set ReadRecords = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
 End Function
 
-'* Update table.
-'* @param[in] SetOfFilters. Set of filtered fields.
-'* @param[in] SetOfItems. Set of items.
+'* Update records.
+'* @param[in] SetOfFieldsAndValues. Set of fields and values.
+'* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields. If this argument is not defined or blank, create a new record based on SetOfFieldsAndValues argument.
+'* @param[out] UpdatedRecords. (Optional) Set of updated records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function UpdateTable(SetOfFiltedFields As String, SetOfItems As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-  '* @todo do something.
+Public Function UpdateRecords(SetOfFieldsAndValues As String, Optional SetOfFiltedFields As String, Optional UpdatedRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "UpdateRecords")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  ' Filter records.
+  Call Me.FilterRecords(SetOfFiltedFields)
+  Dim worksheet_ As Worksheet
+  Set worksheet_ = Me.WorksheetForEditingTable
+  With worksheet_
+    If (SetOfFieldsAndValues <> "") Then
+      Dim fieldsAndValuesMap_ As Object
+      Set fieldsAndValuesMap_ = CreateObject("Scripting.Dictionary")
+      Dim fieldsAndValues_ As Variant
+      fieldsAndValues_ = Split(SetOfFieldsAndValues, Second_Level_Delimiter)
+      Dim indexOffieldsAndValues_ As Long
+      For indexOffieldsAndValues_ = LBound(fieldsAndValues_) To UBound(fieldsAndValues_)
+        Dim fieldAndValue_ As Variant
+        fieldAndValue_ = Split(fieldsAndValues_(indexOffieldsAndValues_), First_Level_Delimiter)
+        Dim updatedField_ As String
+        updatedField_ = CStr(fieldAndValue_(FieldAndValue.Field))
+        fieldsAndValuesMap_(updatedField_) = _
+          CStr(fieldAndValue_(FieldAndValue.Value))
+        If (InStr(updatedField_, Field_Date_Delimiter) <> 0) Then
+          Dim fields_ As Variant
+          fields_ = .Range( _
+            .Cells(TableRow.Field, TableColumn.Left__), _
+            .Cells(TableRow.Field, .Columns.Count).End(xlToLeft) _
+          )
+          Dim indexOfFields_ As Long
+          For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+            Dim field_ As String
+            field_ = fields_(TableRow.Field, indexOfFields_)
+            Dim ToBeInsertedFlag As Boolean
+            ToBeInsertedFlag = False
+            If (InStr(field_, Field_Date_Delimiter) <> 0) Then
+              If (updatedField_ = field_) Then
+                ToBeInsertedFlag = False
+                Exit For
+              ElseIf ( _
+                Left( _
+                  updatedField_, _
+                  InStr(updatedField_, Field_Date_Delimiter) - 1 _
+                ) = Left( _
+                  field_, _
+                  InStr(field_, Field_Date_Delimiter) - 1 _
+                ) _
+              ) Then
+                ToBeInsertedFlag = True
+                ' If updated field is lower than current field,
+                If (updatedField_ < field_) Then
+                  Exit For
+                End If
+              ElseIf (ToBeInsertedFlag) Then
+                Exit For
+              End If
+            ElseIf (ToBeInsertedFlag) Then
+              Exit For
+            End If
+          Next
+          If (ToBeInsertedFlag) Then
+            .Columns(indexOfFields_).Insert
+            .Cells(TableRow.Field, indexOfFields_) = CStr(updatedField_)
+          End If
+        End If
+      Next
+      If (SetOfFiltedFields <> "") Then
+        Dim updatedRecords_ As Range
+        Set updatedRecords_ = _
+          .Range( _
+            .Cells(TableRow.Field, TableColumn.Left__), _
+            .Cells(TableRow.Field, TableColumn.Left__) _
+          ).CurrentRegion.SpecialCells(xlCellTypeVisible)
+        Dim updatedCell_ As Range
+        For Each updatedCell_ In updatedRecords_
+          If ( _
+            (updatedCell_.Row >= TableRow.TopOfRecord) _
+            And _
+            (fieldsAndValuesMap_.Exists(CStr(updatedRecords_(TableRow.Field, updatedCell_.Column)))) _
+          ) Then
+            updatedCell_ = CStr(fieldsAndValuesMap_(CStr(updatedRecords_(TableRow.Field, updatedCell_.Column))))
+          End If
+        Next
+      Else
+        .Rows(TableRow.TopOfRecord).Insert
+        fields_ = .Range( _
+          .Cells(TableRow.Field, TableColumn.Left__), _
+          .Cells(TableRow.Field, .Columns.Count).End(xlToLeft) _
+        )
+        Dim insertedRecord_ As Variant
+        ReDim insertedRecord_(LBound(fields_, 2) To UBound(fields_, 2)) As String
+        Dim indexOfFields As Long
+        For indexOfFields = LBound(fields_, 2) To UBound(fields_, 2)
+          If (fieldsAndValuesMap_.Exists(CStr(fields_(TableRow.Field, indexOfFields)))) Then
+            insertedRecord_(indexOfFields) = CStr(fieldsAndValuesMap_(CStr(fields_(TableRow.Field, indexOfFields))))
+          End If
+        Next
+        .Range( _
+          .Cells(TableRow.TopOfRecord, LBound(fields_, 2)), _
+          .Cells(TableRow.TopOfRecord, UBound(fields_, 2)) _
+        ) = insertedRecord_
+        Set updatedRecords_ = _
+          .Range( _
+            .Cells(TableRow.Field, LBound(fields_, 2)), _
+            .Cells(TableRow.TopOfRecord, UBound(fields_, 2)) _
+          )
+      End If
+    End If
+  End With
+  With Me.WorksheetForReadingTable
+    .Cells.Clear
+    updatedRecords_.Copy .Range( _
+      .Cells(TableRow.Field, TableColumn.Left__), _
+      .Cells(TableRow.Field, TableColumn.Left__) _
+    )
+  End With
+  Call Me.ReadRecords(UpdatedRecords)
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set UpdateRecords = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
 End Function
 
-'* Delete table.
+'* Delete records.
+'* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields. If this argument is not defined or blank, create a new record based on SetOfFieldsAndValues argument.
+'* @param[out] DeletedRecords. Set of deleted records
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function DeleteTable(Optional ExitStatus As Long) As ExcelWorksheetClass
-  '* @todo do something.
+Public Function DeleteRecords(SetOfFiltedFields As String, Optional DeletedRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "DeleteRecords")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Call Me.FilterRecords(SetOfFiltedFields)
+  With Me.WorksheetForEditingTable
+    Dim deletedRecords_ As Range
+    Set deletedRecords_ = .Range( _
+      .Cells(TableRow.Field, TableColumn.Left__), _
+      .Cells(TableRow.Field, TableColumn.Left__) _
+    ).CurrentRegion.SpecialCells(xlCellTypeVisible)
+    With Me.WorksheetForReadingTable
+      .Cells.Clear
+      deletedRecords_.Copy .Range( _
+        .Cells(TableRow.Field, TableColumn.Left__), _
+        .Cells(TableRow.Field, TableColumn.Left__) _
+      )
+    End With
+    deletedRecords_.Delete
+  End With
+  Call Me.ReadRecords(DeletedRecords)
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set DeleteRecords = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
 End Function

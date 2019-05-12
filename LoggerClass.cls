@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'! This provides (a) original logging functions in reference to log4j and (b) object names, method names, and property names logging functions with log messages.
+'! This class provides (a) original logging functions in reference to log4j and (b) object names, method names, and property names logging functions with log messages.
 '! @copyright MIT
 '
 ' Edit the followings as needed:
