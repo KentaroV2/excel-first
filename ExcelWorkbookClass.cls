@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'! This provides attributes and methods for Microsoft Excel Workbook.
+'! This class provides attributes and methods for Microsoft Excel Workbook.
 '! This class contains (a) encryption attributes (b) Workbook object, and (c) data manipulating functions.
 '! This class is created by the ExcelFirst class in order to bind a Workbook where the ExcelFirst class runs when the ExcelFirst class runs is initialized.
 '! @copyright MIT
@@ -20,10 +20,10 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name. This name represents file name except directory path and file extention; (ie. xls, xlsx). This name is also used for logging purpose.
 Private myParent As Object '* Parent object.
-Private myLogger As LoggerClass '* Logger object
+Private myLogger As Object '* Logger object.
 Private myWorkbook As Workbook '* Workbook object
-Private myPasswordFlag As Boolean '* Password flag
 Private myExcelWorksheets As Object '* Set of ExcelWorksheet objects
+Private myPasswordFlag As Boolean '* Password flag
 
 '* Initialize this class.
 Private Sub Class_Initialize()
@@ -34,7 +34,7 @@ End Sub
 
 '* Terminate this class.
 Private Sub Class_Terminate()
-  ' Release all keys in myWorksheets object.
+  Set myParent = Nothing
   Dim key_ As Variant
   For Each key_ In myExcelWorksheets
     Set myExcelWorksheets(key_) = Nothing
@@ -66,7 +66,7 @@ Public Property Set Logger(Logger As Object)
   Set myLogger = Logger
 End Property
 
-'* Get Parent property.
+'* Get Logger property.
 Public Property Get Logger() As Object
   Set Logger = myLogger
 End Property
@@ -81,13 +81,26 @@ Property Get Workbook() As Workbook
   Set Workbook = myWorkbook
 End Property
 
+'* Get ExcelWorkbook property.
+Public Property Get ExcelWorksheet(ByVal Name As String) As ExcelWorksheetClass
+  If (Name = "") Then
+    Name = This
+  End If
+  If (myExcelWorksheets.Exists(Name) = False) Then
+    Set ExcelWorksheet = Nothing
+  Else
+    Set ExcelWorksheet = myExcelWorksheets(Name)
+  End If
+End Property
+
 '* Bind Workbook.
 '* @param[in] Name. When this Name is blank, return a ThisWorkbook object (running this program). When this Name doesn't have any file extention like "xls" or "xlsx", find Excel file with these file extentions.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Sub Bind(Name As String, Optional ExitStatus As Long)
+'* @return ExcelWorkbookClass. Self.
+Public Function Bind(Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
 Initialize:
   On Error GoTo Error
-  Me.Logger.StackName (myName & "." & "Bind")
+  Call Me.Logger.StackName(Me.Name & "." & "Bind")
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
@@ -95,52 +108,89 @@ Execute:
   If (Name = "") Then
     ' Return a ThisWorkbook object.
     Set Me.Workbook = Application.ThisWorkbook
-    myName = This
+    Me.Name = This
   Else
     '* @todo Do something.
     exitStatus_ = Exit_Status.Workbook_Is_Not_Found
   End If
 Exit__:
-  Me.Logger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
-  Exit Sub
+  Set Bind = Me
+  Exit Function
 Error:
-  ' Set return value as error number.
   exitStatus_ = Err.Number
-  ' Log error.
-  Me.Logger.Error ("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-  ' Go to exit function.
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
-End Sub
+End Function
 
 '* Bind ExcelWorksheet.
 '* @param[in] Name. This name should be a Worksheet name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-'* @return ExcelWorkbookClass
-Public Function BindExcelWorksheet(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+'* @return ExcelWorkbookClass. Self.
+Public Function BindExcelWorksheet(ByVal Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
 Initialize:
   On Error GoTo Error
-  myLogger.StackName (myName & "." & "BindExcelWorksheet")
+  Call Me.Logger.StackName(Me.Name & "." & "BindExcelWorksheet")
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
-  Set BindExcelWorksheet = Nothing
 Execute:
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = New ExcelWorksheetClass
   Set excelWorksheet_.Parent = Me
-  Set excelWorksheet_.Logger = Me.Logger '* @todo Eliminate relations between Logger object and any other object.
-  Call excelWorksheet_.Bind(Name, exitStatus_)
+  Set excelWorksheet_.Logger = Me.Logger
+  Call excelWorksheet_.BindWorksheet(Name, exitStatus_)
   If (exitStatus_ = Exit_Status.Worksheet_Is_Not_Found) Then
     Set excelWorksheet_ = Nothing
+  Else
+    If (Name = "") Then
+      Name = This
+    End If
+    Set myExcelWorksheets(Name) = excelWorksheet_
   End If
-  Set BindExcelWorksheet = excelWorksheet_
 Exit__:
-  myLogger.UnstackName
+  Call Me.Logger.UnstackName
   ExitStatus = exitStatus_
+  Set BindExcelWorksheet = Me
   Exit Function
 Error:
   exitStatus_ = Err.Number
-  myLogger.Error ("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
+End Function
+
+'* Bind ExcelWorksheet for table.
+'* @param[in] Name. This name should be a Worksheet name.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorkbookClass. Self.
+Public Function BindExcelWorksheetForTable(ByVal Name As String, Optional ExitStatus As Long) As ExcelWorkbookClass
+Initialize:
+  On Error GoTo Error
+  Call Me.Logger.StackName(Me.Name & "." & "BindExcelWorksheetForTable")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Dim excelWorksheet_ As ExcelWorksheetClass
+  Set excelWorksheet_ = New ExcelWorksheetClass
+  Set excelWorksheet_.Parent = Me
+  Set excelWorksheet_.Logger = Me.Logger
+  Call excelWorksheet_.BindWorksheetForTable(Name, exitStatus_)
+  If (exitStatus_ = Exit_Status.Worksheet_Is_Not_Found) Then
+    Set excelWorksheet_ = Nothing
+  Else
+    If (Name = "") Then
+      Name = This
+    End If
+    Set myExcelWorksheets(Name) = excelWorksheet_
+  End If
+Exit__:
+  Call Me.Logger.UnstackName
+  ExitStatus = exitStatus_
+  Set BindExcelWorksheetForTable = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call Me.Logger.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Function
 

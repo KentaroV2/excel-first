@@ -1,6 +1,6 @@
-Attribute VB_Name = "LoggerModule"
+Attribute VB_Name = "LoggerClassModule"
 Option Explicit
-'! This provides (a) original logging functions in reference to log4j and (b) object names, method names, and property names logging functions with log messages.
+'! This module provides (a) original logging functions in reference to log4j and (b) object names, method names, and property names logging functions with log messages.
 '! @copyright MIT
 '
 ' Edit the followings as needed:
