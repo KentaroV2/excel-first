@@ -21,6 +21,9 @@ Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 Public Const Excel_First_Name As String = "ExcelFirst" '* "Excel First" label
 Public Const Logger_Name As String = "Logger" '* "Logger" label
 Public Const Undefined As String = "Undefined" '* "undefined" label
+Public Const True__ As String = "True" '* "True" label
+Public Const False__ As String = "False" '* "False" label
+Public Const Null__ As String = "Null" '* "Null" label
 Public Const This As String = "This" '* "this Excel Workbook" label
 Public Const First_Level_Delimiter As String = vbTab '* First-level delimiter
 Public Const Second_Level_Delimiter As String = vbTab & vbTab '* Second-level delimiter

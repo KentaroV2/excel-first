@@ -20,7 +20,7 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name. This name represents file name except directory path and file extention; (ie. xls, xlsx). This name is also used for logging purpose.
 Private myParent As Object '* Parent object.
-Private myLogger As Object '* Logger object.
+Private myLogger As LoggerClass '* Logger object.
 Private myWorkbook As Workbook '* Workbook object
 Private myExcelWorksheets As Object '* Set of ExcelWorksheet objects
 Private myPasswordFlag As Boolean '* Password flag

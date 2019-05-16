@@ -354,7 +354,7 @@ Sub ExamplesForExcelWorksheetClass_ReadTable()
   ' Set INFO as logger level.
   Dim logger_ As LoggerClass
   Set logger_ = excelFirst_.Logger
-  Call logger_.SetLevel(Logger_Level.Off)
+  Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
   Call logger_.StackName("ExamplesForExcelWorksheetClass_ReadTable")
@@ -417,4 +417,74 @@ Sub ExamplesForExcelWorksheetClass_ReadTable()
   
 End Sub
 
+'* This example teaches how to use DeleteRecords method.
+'* @attention This example requires two Worksheets called "(SampleTable)" and "((SampleTable))".
+Sub ExamplesForExcelWorksheetClass_DeleteRecords()
 
+  ' Instantiate First class.
+  Dim excelFirst_ As ExcelFirstClass
+  Set excelFirst_ = New ExcelFirstClass
+  
+  ' Set INFO as logger level.
+  Dim logger_ As LoggerClass
+  Set logger_ = excelFirst_.Logger
+  Call logger_.SetLevel(Logger_Level.Info)
+  
+  ' Stack name.
+  Call logger_.StackName("ExamplesForExcelWorksheetClass_DeleteRecords")
+  
+  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
+  Dim excelWorksheet_ As ExcelWorksheetClass
+  Set excelWorksheet_ = _
+    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
+    ExcelWorksheet("SampleTable")
+    
+  ' Disable screen updating.
+  excelFirst_.ScreenUpdatingFlag = False
+  
+  ' Create table.
+  With excelWorksheet_
+    Call .CreateTable("item" & First_Level_Delimiter & "price")
+  
+  ' Create new records.
+    Call .UpdateRecords( _
+      "item" & First_Level_Delimiter & "apple" & _
+        Second_Level_Delimiter & _
+      "price" & First_Level_Delimiter & CStr(100))
+    Call .UpdateRecords( _
+      "item" & First_Level_Delimiter & "orange" & _
+        Second_Level_Delimiter & _
+      "price" & First_Level_Delimiter & CStr(200))
+    Call .UpdateRecords( _
+      "item" & First_Level_Delimiter & "cherry" & _
+        Second_Level_Delimiter & _
+      "price" & First_Level_Delimiter & CStr(200))
+    Call .UpdateRecords( _
+      "item" & First_Level_Delimiter & "plum" & _
+        Second_Level_Delimiter & _
+      "price" & First_Level_Delimiter & CStr(300))
+    Call .UpdateRecords( _
+      "item" & First_Level_Delimiter & "grape" & _
+        Second_Level_Delimiter & _
+      "price" & First_Level_Delimiter & CStr(400) _
+      )
+  
+    ' Delete records.
+    Dim deletedRecords_ As Range
+    Call .DeleteRecords( _
+      "item" & First_Level_Delimiter & "*c*" & Or_Operator & "*g*", _
+      deletedRecords_ _
+    )
+    
+    ' Read records.
+    Call logger_.Info("deletedRecords_.Rows.Count = " & CStr(deletedRecords_.Rows.Count)) ' "deletedRecords_.Rows.Count = 3"
+    Call logger_.Info("deletedRecords_.Columns.Count = " & CStr(deletedRecords_.Columns.Count)) ' "deletedRecords_.Columns.Count = 2"
+  End With
+  
+  ' Enable screen updating.
+  excelFirst_.ScreenUpdatingFlag = True
+  
+  ' Unstack name.
+  Call logger_.UnstackName
+  
+End Sub

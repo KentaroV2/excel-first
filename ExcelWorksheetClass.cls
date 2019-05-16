@@ -19,7 +19,7 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name (also needed for logging purpose). The name also represent Worksheet name.
 Private myParent As Object '* Parent object. This object should be ExcelWorkbook.
-Private myLogger As Object '* Logger object
+Private myLogger As LoggerClass '* Logger object
 Private myWorksheet As Worksheet '* Worksheet object.
 Private myWorksheetForEditingTable As Worksheet '* Worksheet object for editing table.
 Private myWorksheetForReadingTable As Worksheet '* Worksheet object for reading table.
@@ -661,7 +661,7 @@ Execute:
         .Cells(TableRow.Field, TableColumn.Left__) _
       )
     End With
-    deletedRecords_.Delete
+    Rows(CStr(TableRow.TopOfRecord) & ":" & CStr(.AutoFilter.Range.Rows.Count)).SpecialCells(xlCellTypeVisible).Delete
   End With
   Call Me.ReadRecords(DeletedRecords)
 Exit__:

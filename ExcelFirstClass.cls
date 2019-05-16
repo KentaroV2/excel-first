@@ -20,7 +20,7 @@ Option Explicit
 ' Define members.
 Private myName As String '* Name. This name is also used for logging purpose.
 Private myParent As Object '* Parent object.
-Private myLogger As Object '* Logger object.
+Private myLogger As LoggerClass '* Logger object.
 Private myExcelWorkbooks As Object '* Set of ExcelWorkbook objects.
 Private myScreenUpdatingFlag As Boolean '* Screen-updating flag
 Private myEventsFlag As Boolean '* Events flag
