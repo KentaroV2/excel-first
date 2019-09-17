@@ -113,7 +113,11 @@ End Property
 '* @param[in] ParametersForDatabaseConnection. (Optional) Parameters for database connection.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function Bind(Name As String, Optional ParametersForDatabaseConnection As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function Bind( _
+  Name As String, _
+  Optional ParametersForDatabaseConnection As String, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -202,7 +206,9 @@ Execute:
       Else
         Set Me.Worksheet = Nothing
       End If
-    Case Database_Connection_Type.Oracle
+    Case _
+      Database_Connection_Type.Oracle, _
+      Database_Connection_Type.MicrosoftAccess
       For Each worksheet_ In worksheets_
         If ( _
           worksheet_.Name = _
@@ -222,25 +228,38 @@ Execute:
       Else
         Set Me.Worksheet = Nothing
       End If
-      Set myDatabaseConnection = CreateObject("ADODB.Connection")
-      Set myRecordset = CreateObject("ADODB.Recordset")
-      Dim connection_ As String
-      connection_ = "Provider=MSDAORA"
-      If (dataSource_ <> "") Then
-        connection_ = connection_ & ";" & "Data Source=" & dataSource_
-        If (user_ <> "") Then
-          connection_ = connection_ & ";" & "User ID=" & user_
-          If (password_ <> "") Then
-            connection_ = connection_ & ";" & "Password=" & password_
+      Select Case databaseConnectionType_
+        Case Database_Connection_Type.Oracle
+          Dim connection_ As String
+          connection_ = "Provider=OraOLEDB.Oracle"
+          If (dataSource_ <> "") Then
+            connection_ = connection_ & ";" & "Data Source=" & dataSource_
+            If (user_ <> "") Then
+              connection_ = connection_ & ";" & "User ID=" & user_
+              If (password_ <> "") Then
+                connection_ = connection_ & ";" & "Password=" & password_
+              End If
+            End If
           End If
-        End If
-      End If
-      If (connection_ = "") Then
+        Case Database_Connection_Type.MicrosoftAccess
+          connection_ = "Provider=Microsoft.ACE.OLEDB.12.0"
+          If (dataSource_ <> "") Then
+            connection_ = connection_ & ";" & "Data Source=" & dataSource_
+            If (user_ <> "") Then
+              connection_ = connection_ & ";" & "User Id=" & user_
+              If (password_ <> "") Then
+                connection_ = connection_ & ";" & "Password=" & password_
+              End If
+            End If
+          End If
+      End Select
+      If (dataSource_ = "") Then
         Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
       End If
+      Debug.Print "connection_ : " & connection_
+      Set myDatabaseConnection = CreateObject("ADODB.Connection")
+      Set myRecordset = CreateObject("ADODB.Recordset")
       myDatabaseConnection.Open connection_
-    Case Database_Connection_Type.MicrosoftAccess
-      '* @TODO do something.
     Case Else
       Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
   End Select
@@ -259,7 +278,9 @@ End Function
 '* Unbind Worksheet.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function Unbind(Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function Unbind( _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -269,7 +290,13 @@ Initialize:
   exitStatus_ = Exit_Status.Success
 Execute:
   Select Case Me.DatabaseConnectionType
-    Case Database_Connection_Type.Oracle
+    Case _
+      Database_Connection_Type.None, _
+      Database_Connection_Type.MicrosoftExcelWorksheet
+      ' Do nothing.
+    Case _
+      Database_Connection_Type.MicrosoftAccess, _
+      Database_Connection_Type.Oracle
       myDatabaseConnection.Close
   End Select
 Exit__:
@@ -282,7 +309,6 @@ Error:
   Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Function
-
 
 '* Clear Worksheet.
 '* @param[in] FontName. (Optional) Font name.
@@ -340,73 +366,74 @@ Error:
   GoTo Exit__
 End Sub
 
-
 '* Bind Worksheet for table.
 '* @param[in] Name. This name should be Worksheet name.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-Initialize:
-  On Error GoTo Error
-  Dim logger_ As LoggerClass
-  Set logger_ = Me.Logger
-  Call logger_.StackName(Me.Name & "." & "BindWorksheetForTable")
-  Dim exitStatus_ As Long
-  exitStatus_ = Exit_Status.Success
-Execute:
-  Dim parent_ As Object
-  Set parent_ = Me.Parent
-  Dim workbook_ As Workbook
-  Set workbook_ = parent_.Workbook
-  Dim worksheets_ As Sheets
-  Set worksheets_ = workbook_.Worksheets
-  Dim worksheet_ As Worksheet
-  For Each worksheet_ In worksheets_
-      If ( _
-        worksheet_.Name = _
-          Left_Parentheses & _
-          Name & _
-          Right_Parentheses _
-      ) Then
-        Set Me.WorksheetForEditingTable = worksheet_
-      ElseIf ( _
-        worksheet_.Name = _
-          Left_Parentheses & _
-          Left_Parentheses & _
-          Name & _
-          Right_Parentheses & _
-          Right_Parentheses _
-      ) Then
-        Set Me.WorksheetForReadingTable = worksheet_
-      End If
-  Next
-  If ( _
-    Me.WorksheetForEditingTable Is Nothing _
-    Or _
-    Me.WorksheetForReadingTable Is Nothing _
-  ) Then
-    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
-  Else
-    Set Me.Worksheet = Nothing
-    Me.Name = Name
-  End If
-Exit__:
-  Call logger_.UnstackName
-  ExitStatus = exitStatus_
-  Set BindWorksheetForTable = Me
-  Exit Function
-Error:
-  exitStatus_ = Err.Number
-  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-  GoTo Exit__
-End Function
-
+'Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+'Initialize:
+'  On Error GoTo Error
+'  Dim logger_ As LoggerClass
+'  Set logger_ = Me.Logger
+'  Call logger_.StackName(Me.Name & "." & "BindWorksheetForTable")
+'  Dim exitStatus_ As Long
+'  exitStatus_ = Exit_Status.Success
+'Execute:
+'  Dim parent_ As Object
+'  Set parent_ = Me.Parent
+'  Dim workbook_ As Workbook
+'  Set workbook_ = parent_.Workbook
+'  Dim worksheets_ As Sheets
+'  Set worksheets_ = workbook_.Worksheets
+'  Dim worksheet_ As Worksheet
+'  For Each worksheet_ In worksheets_
+'      If ( _
+'        worksheet_.Name = _
+'          Left_Parentheses & _
+'          Name & _
+'          Right_Parentheses _
+'      ) Then
+'        Set Me.WorksheetForEditingTable = worksheet_
+'      ElseIf ( _
+'        worksheet_.Name = _
+'          Left_Parentheses & _
+'          Left_Parentheses & _
+'          Name & _
+'          Right_Parentheses & _
+'          Right_Parentheses _
+'      ) Then
+'        Set Me.WorksheetForReadingTable = worksheet_
+'      End If
+'  Next
+'  If ( _
+'    Me.WorksheetForEditingTable Is Nothing _
+'    Or _
+'    Me.WorksheetForReadingTable Is Nothing _
+'  ) Then
+'    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
+'  Else
+'    Set Me.Worksheet = Nothing
+'    Me.Name = Name
+'  End If
+'Exit__:
+'  Call logger_.UnstackName
+'  ExitStatus = exitStatus_
+'  Set BindWorksheetForTable = Me
+'  Exit Function
+'Error:
+'  exitStatus_ = Err.Number
+'  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+'  GoTo Exit__
+'End Function
 
 '* Create table.
 '* @param[in] SetOfFields. Set of fields.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function CreateTable(SetOfFields As String, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function CreateTable( _
+  SetOfFields As String, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -447,15 +474,22 @@ Error:
   GoTo Exit__
 End Function
 
-
 '* Filter records.
 '* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields.
 '* @param[in] SetOfSortedFields. (Optional) Set of sorted fields.
 '* @param[in] DuplicatesRemovingField. (Optional) Duplicates removing field.
+'* @param[in] IsResultRead. (Optional) Flag whether filtered result is read later on. Default value is False.
 '* @param[out] FilteredRecords. (Optional) Set of filtered records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function FilterRecords(Optional SetOfFiltedFields As String, Optional SetOfSortedFields As String, Optional DuplicatesRemovingField As String, Optional FilteredRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function FilterRecords( _
+  Optional SetOfFiltedFields As String, _
+  Optional SetOfSortedFields As String, _
+  Optional DuplicatesRemovingField As String, _
+  Optional IsResultRead As Boolean = False, _
+  Optional FilteredRecords As Range, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -538,13 +572,15 @@ Execute:
               DataOption:=xlSortNormal
             End If
           Next
+          With worksheet_.AutoFilter.Sort
+            .Header = xlYes
+            .MatchCase = False
+            .Orientation = xlTopToBottom
+            .SortMethod = xlPinYin
+            .Apply
+          End With
         End If
       End With
-      .Header = xlYes
-      .MatchCase = False
-      .Orientation = xlTopToBottom
-      .SortMethod = xlPinYin
-      .Apply
     End With
     Dim filteredAndSortedRecords As Range
     Set filteredAndSortedRecords = .Range( _
@@ -604,7 +640,9 @@ Execute:
 '        Header:=xlYes
     End If
   End With
-  Call Me.ReadRecords(FilteredRecords)
+  If (IsResultRead) Then
+    Call Me.ReadRecords(FilteredRecords)
+  End If
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
@@ -616,12 +654,14 @@ Error:
   GoTo Exit__
 End Function
 
-
 '* Read records.
 '* @param[out] Records. Set of records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function ReadRecords(Records As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function ReadRecords( _
+  Records As Range, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -651,14 +691,20 @@ Error:
   GoTo Exit__
 End Function
 
-
 '* Update records.
 '* @param[in] SetOfFieldsAndValues. Set of fields and values.
 '* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields. If this argument is not defined or blank, create a new record based on SetOfFieldsAndValues argument.
+'* @param[in] IsResultRead. (Optional) Flag whether updated result is read later on. Default value is False.
 '* @param[out] UpdatedRecords. (Optional) Set of updated records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function UpdateRecords(SetOfFieldsAndValues As String, Optional SetOfFiltedFields As String, Optional UpdatedRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function UpdateRecords( _
+  SetOfFieldsAndValues As String, _
+  Optional SetOfFiltedFields As String, _
+  Optional IsResultRead As Boolean = False, _
+  Optional UpdatedRecords As Range, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -667,8 +713,6 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
-  ' Filter records.
-  Call Me.FilterRecords(SetOfFiltedFields)
   Dim worksheet_ As Worksheet
   Set worksheet_ = Me.WorksheetForEditingTable
   With worksheet_
@@ -685,6 +729,11 @@ Execute:
         updatedField_ = CStr(fieldAndValue_(Field_And_Value.Field))
         fieldsAndValuesMap_(updatedField_) = _
           CStr(fieldAndValue_(Field_And_Value.Value))
+
+'        If (updatedField_ = "BusinessCode") And (CStr(fieldAndValue_(Field_And_Value.Value)) = "530011") Then
+'          Stop
+'        End If
+        
         If (InStr(updatedField_, Field_Date_Delimiter) <> 0) Then
           Dim fields_ As Variant
           fields_ = .Range( _
@@ -729,6 +778,7 @@ Execute:
         End If
       Next
       If (SetOfFiltedFields <> "") Then
+        Call Me.FilterRecords(SetOfFiltedFields)
         Dim updatedRecords_ As Range
         Set updatedRecords_ = _
           .Range( _
@@ -745,6 +795,16 @@ Execute:
             updatedCell_ = fieldsAndValuesMap_(CStr(updatedRecords_(Table_Row.Field, updatedCell_.Column)))
           End If
         Next
+        If (IsResultRead) Then
+          With Me.WorksheetForReadingTable
+            .Cells.Clear
+            updatedRecords_.Copy .Range( _
+              .Cells(Table_Row.Field, Table_Column.Left__), _
+              .Cells(Table_Row.Field, Table_Column.Left__) _
+            )
+          End With
+          Call Me.ReadRecords(UpdatedRecords)
+        End If
       Else
         fields_ = .Range( _
           .Cells(Table_Row.Field, Table_Column.Left__), _
@@ -758,51 +818,55 @@ Execute:
             insertedRecord_(indexOfFields) = fieldsAndValuesMap_(CStr(fields_(Table_Row.Field, indexOfFields)))
           End If
         Next
-'        Dim rowOfBottomRecord_ As Long
-'        rowOfBottomRecord_ = .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row
-'        .Range( _
-'          .Cells(rowOfBottomRecord_ + 1, LBound(fields_, Size_Dimentions.Column)), _
-'          .Cells(rowOfBottomRecord_ + 1, UBound(fields_, Size_Dimentions.Column)) _
-'        ) = insertedRecord_
-        .Rows(Table_Row.TopOfRecord).Insert
+        Dim rowOfInsertedRecord As Long
+        rowOfInsertedRecord = .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row + 1
         .Range( _
-          .Cells(Table_Row.TopOfRecord, LBound(fields_, Size_Dimentions.Column)), _
-          .Cells(Table_Row.TopOfRecord, UBound(fields_, Size_Dimentions.Column)) _
+          .Cells(rowOfInsertedRecord, LBound(fields_, Size_Dimentions.Column)), _
+          .Cells(rowOfInsertedRecord, UBound(fields_, Size_Dimentions.Column)) _
         ) = insertedRecord_
-        Set updatedRecords_ = _
-          .Range( _
-            .Cells(Table_Row.Field, LBound(fields_, Size_Dimentions.Column)), _
-            .Cells(Table_Row.TopOfRecord, UBound(fields_, Size_Dimentions.Column)) _
-          )
+        If (IsResultRead) Then
+          With Me.WorksheetForReadingTable
+            .Cells.Clear
+            .Range( _
+              .Cells(Table_Row.Field, LBound(fields_, Size_Dimentions.Column)), _
+              .Cells(Table_Row.Field, UBound(fields_, Size_Dimentions.Column)) _
+            ) = fields_
+            .Range( _
+              .Cells(Table_Row.TopOfRecord, LBound(fields_, Size_Dimentions.Column)), _
+              .Cells(Table_Row.TopOfRecord, UBound(fields_, Size_Dimentions.Column)) _
+            ) = insertedRecord_
+          End With
+          Call Me.ReadRecords(UpdatedRecords)
+        End If
       End If
     End If
   End With
-  With Me.WorksheetForReadingTable
-    .Cells.Clear
-    updatedRecords_.Copy .Range( _
-      .Cells(Table_Row.Field, Table_Column.Left__), _
-      .Cells(Table_Row.Field, Table_Column.Left__) _
-    )
-  End With
-  Call Me.ReadRecords(UpdatedRecords)
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
   Set UpdateRecords = Me
   Exit Function
 Error:
+'  Debug.Print "SetOfFieldsAndValues = " & SetOfFieldsAndValues
+'  Stop
+  
   exitStatus_ = Err.Number
   Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
 End Function
 
-
 '* Delete records.
-'* @param[in] SetOfFiltedFields. (Optional) Set of filtered fields. If this argument is not defined or blank, create a new record based on SetOfFieldsAndValues argument.
-'* @param[out] DeletedRecords. Set of deleted records
+'* @param[in] SetOfFiltedFields (Optional). Set of filtered fields. If this argument is not defined or blank, create a new record based on SetOfFieldsAndValues argument.
+'* @param[in] IsResultRead (Optional). Flag whether deleted result is read later on. Default value is False.
+'* @param[out] DeletedRecords. (Optional) Set of deleted records
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function DeleteRecords(SetOfFiltedFields As String, Optional DeletedRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function DeleteRecords( _
+  SetOfFiltedFields As String, _
+  Optional IsResultRead As Boolean = False, _
+  Optional DeletedRecords As Range, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -818,16 +882,18 @@ Execute:
       .Cells(Table_Row.Field, Table_Column.Left__), _
       .Cells(Table_Row.Field, Table_Column.Left__) _
     ).CurrentRegion.SpecialCells(xlCellTypeVisible)
-    With Me.WorksheetForReadingTable
-      .Cells.Clear
-      deletedRecords_.Copy .Range( _
-        .Cells(Table_Row.Field, Table_Column.Left__), _
-        .Cells(Table_Row.Field, Table_Column.Left__) _
-      )
-    End With
-    Rows(CStr(Table_Row.TopOfRecord) & ":" & CStr(.AutoFilter.Range.Rows.Count)).SpecialCells(xlCellTypeVisible).Delete
+    If (IsResultRead) Then
+      With Me.WorksheetForReadingTable
+        .Cells.Clear
+        deletedRecords_.Copy .Range( _
+          .Cells(Table_Row.Field, Table_Column.Left__), _
+          .Cells(Table_Row.Field, Table_Column.Left__) _
+        )
+        Call Me.ReadRecords(DeletedRecords)
+      End With
+    End If
+    .Rows(CStr(Table_Row.TopOfRecord) & ":" & CStr(.AutoFilter.Range.Rows.Count)).SpecialCells(xlCellTypeVisible).Delete
   End With
-  Call Me.ReadRecords(DeletedRecords)
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
@@ -839,13 +905,16 @@ Error:
   GoTo Exit__
 End Function
 
-
 '* Execute SQL.
 '* @param[in] Sql. sql statement.
 '* @param[out] ExecutedRecords. (Optional) Executed records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
-Public Function ExecuteSQL(Sql As String, Optional ExecutedRecords As Range, Optional ExitStatus As Long) As ExcelWorksheetClass
+Public Function ExecuteSQL( _
+  Sql As String, _
+  Optional ExecutedRecords As Range, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
 Initialize:
   On Error GoTo Error
   Dim logger_ As LoggerClass
@@ -854,21 +923,25 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
-  If (Me.DatabaseConnectionType <> Database_Connection_Type.Oracle) Then
-    Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
-  End If
-  Dim worksheet_ As Worksheet
-  Set worksheet_ = Me.WorksheetForReadingTable
-  With worksheet_
-    .Cells.Clear
-    Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenDynamic, Lock_Type.adLockOptimistic, Command_Type.adCmdText)
-    Dim indexOfField As Long
-    For indexOfField = 1 To myRecordset.Fields.Count
-      .Cells(1, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
-    Next
-    .Cells(2, 1).CopyFromRecordset myRecordset
-    myRecordset.Close
-  End With
+  Select Case Me.DatabaseConnectionType
+    Case _
+      Database_Connection_Type.Oracle, _
+      Database_Connection_Type.MicrosoftAccess
+      Dim worksheet_ As Worksheet
+      Set worksheet_ = Me.WorksheetForReadingTable
+      With worksheet_
+        .Cells.Clear
+        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenDynamic, Lock_Type.adLockOptimistic, Command_Type.adCmdText)
+        Dim indexOfField As Long
+        For indexOfField = 1 To myRecordset.Fields.Count
+          .Cells(1, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
+        Next
+        .Cells(2, 1).CopyFromRecordset myRecordset
+        myRecordset.Close
+      End With
+    Case Else
+      Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
+  End Select
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
