@@ -26,14 +26,22 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheet()
   ' Stack name.
   Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet")
   
-  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
+  ' Bind ExcelWorksheet.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook(This).BindExcelWorksheet("SampleSheet") _
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet("SampleSheet") _
     .ExcelWorksheet("SampleSheet")
+    ' The following line also work.
 '  Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook(This).BindExcelWorksheet("SampleSheet", "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.None)) _
-    .ExcelWorksheet ("SampleSheet")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleSheet", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.None) _
+      ) _
+    .ExcelWorksheet("SampleSheet")
   logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Name = SampleSheet"
   logger_.Info ("excelWorksheet_.Worksheet.Name = " & excelWorksheet_.Worksheet.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Worksheet.Name = SampleSheet"
   
@@ -63,10 +71,11 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase()
   ' Stack name.
   Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase")
   
-  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
+  ' Bind ExcelWorksheet.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook(This).BindExcelWorksheet( _
+    excelFirst_ _
+    .ExcelWorkbook(This).BindExcelWorksheet( _
       "SampleTable", _
       "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
     ) _
@@ -100,18 +109,70 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase()
   ' Stack name.
   Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase")
   
-  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
+  ' Bind ExcelWorksheet.
+  ' (Note) Replace the following <data source>, <user id>, and <password> with proper values.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook(This).BindExcelWorksheet( _
-      "SampleTable", _
-      "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.Oracle) & _
-      Second_Level_Delimiter & _
-      "DataSource" & First_Level_Delimiter & "<data source>" & _
-      Second_Level_Delimiter & _
-      "User" & First_Level_Delimiter & "<user id>" & _
-      Second_Level_Delimiter & _
-      "Password" & First_Level_Delimiter & "<password>" _
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.Oracle) & _
+        Second_Level_Delimiter & _
+        "DataSource" & First_Level_Delimiter & "<data source>" & _
+        Second_Level_Delimiter & _
+        "User" & First_Level_Delimiter & "<user id>" & _
+        Second_Level_Delimiter & _
+        "Password" & First_Level_Delimiter & "<password>" _
+    ) _
+    .ExcelWorksheet("SampleTable")
+  logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase - excelWorksheet_.Name = SampleTable"
+  
+  ' Execute sample SQL.
+  Call excelWorksheet_.ExecuteSQL("SELECT TABLE_NAME FROM ALL_TABLES ORDER BY OWNER,TABLE_NAME")
+  
+  ' Unbind ExcelWorksheet.
+  excelFirst_.ExcelWorkbook(This) _
+    .UnbindExcelWorksheet ("SampleTable")
+  
+  ' Unstack name.
+  Call logger_.UnstackName
+  
+End Sub
+
+
+'* This example teaches how to bind ExcelWorksheet to access database on Microsoft Access.
+'* @attention This example requires "SampleTable" Worksheet.
+'* @attention This example requires proper (a) data source, (b) user id and (c) password by replacing <data source>, <user id> and <password>, respectively.
+Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessDatabaseOnMicrosoftAccess()
+
+  ' Instantiate First class.
+  Dim excelFirst_ As ExcelFirstClass
+  Set excelFirst_ = New ExcelFirstClass
+  
+  ' Set INFO as logger level.
+  Dim logger_ As LoggerClass
+  Set logger_ = excelFirst_.Logger
+  Call logger_.SetLevel(Logger_Level.Info)
+  
+  ' Stack name.
+  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorksheetToAccessDatabaseOnMicrosoftAccess")
+  
+  ' Bind ExcelWorksheet.
+  ' (Note) Replace the following <data source>, <user id>, and <password> with proper values.
+  Dim excelWorksheet_ As ExcelWorksheetClass
+  Set excelWorksheet_ = _
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftAccess) & _
+        Second_Level_Delimiter & _
+        "DataSource" & First_Level_Delimiter & "<data source>" & _
+        Second_Level_Delimiter & _
+        "User" & First_Level_Delimiter & "<user id>" & _
+        Second_Level_Delimiter & _
+        "Password" & First_Level_Delimiter & "<password>" _
     ) _
     .ExcelWorksheet("SampleTable")
   logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase - excelWorksheet_.Name = SampleTable"
@@ -148,9 +209,14 @@ Sub ExamplesForExcelWorksheetClass_CreateTable()
   ' Bind ExcelWorksheet.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
-  
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
+
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
   
@@ -182,11 +248,16 @@ Sub ExamplesForExcelWorksheetClass_CreateNewRecordsWithUpdateRecords()
   ' Stack name.
   Call logger_.StackName("ExamplesForExcelWorksheetClass_CreateNewRecordsWithUpdateRecords")
   
-  ' Bind ExcelWorksheet.
+  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
   
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -199,27 +270,32 @@ Sub ExamplesForExcelWorksheetClass_CreateNewRecordsWithUpdateRecords()
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "apple" & _
         Second_Level_Delimiter & _
-      "price" & First_Level_Delimiter & CStr(100))
+      "price" & First_Level_Delimiter & CStr(100) _
+    )
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "orange" & _
         Second_Level_Delimiter & _
-      "price" & First_Level_Delimiter & CStr(200))
+      "price" & First_Level_Delimiter & CStr(200) _
+    )
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "cherry" & _
         Second_Level_Delimiter & _
-      "price" & First_Level_Delimiter & CStr(200))
+      "price" & First_Level_Delimiter & CStr(200) _
+    )
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "plum" & _
         Second_Level_Delimiter & _
-      "price" & First_Level_Delimiter & CStr(300))
+      "price" & First_Level_Delimiter & CStr(300) _
+    )
     Dim updatedRecords_ As Range
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "grape" & _
         Second_Level_Delimiter & _
       "price" & First_Level_Delimiter & CStr(400), _
       , _
+      True, _
       updatedRecords_ _
-      )
+    )
     Call logger_.Info("updatedRecords_.Rows.Count = " & CStr(updatedRecords_.Rows.Count)) ' "updatedRecords_.Rows.Count = 2"
     Call logger_.Info("updatedRecords_.Columns.Count = " & CStr(updatedRecords_.Columns.Count)) ' "updatedRecords_.Columns.Count = 2"
   End With
@@ -252,8 +328,13 @@ Sub ExamplesForExcelWorksheetClass_UpdateRecordsWithUpdateRecordsMethod()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
   
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -283,15 +364,14 @@ Sub ExamplesForExcelWorksheetClass_UpdateRecordsWithUpdateRecordsMethod()
     Call .UpdateRecords( _
       "item" & First_Level_Delimiter & "grape" & _
         Second_Level_Delimiter & _
-      "price" & First_Level_Delimiter & CStr(400), _
-      , _
-      updatedRecords_ _
-      )
+      "price" & First_Level_Delimiter & CStr(400) _
+    )
       
     ' Update records.
     Call .UpdateRecords( _
       "price" & First_Level_Delimiter & CStr(500), _
       "item" & First_Level_Delimiter & "*a*", _
+      True, _
       updatedRecords_ _
     )
     Call logger_.Info("updatedRecords_.Rows.Count = " & CStr(updatedRecords_.Rows.Count)) ' "updatedRecords_.Rows.Count = 4"
@@ -326,8 +406,13 @@ Sub ExamplesForExcelWorksheetClass_InsertNewFieldsWithUpdateRecordsMethod()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
   
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -378,6 +463,7 @@ Sub ExamplesForExcelWorksheetClass_InsertNewFieldsWithUpdateRecordsMethod()
         Second_Level_Delimiter & _
       "price__Y2019M03" & First_Level_Delimiter & CStr(110), _
       "item__" & First_Level_Delimiter & "apple", _
+      True, _
       updatedRecords_ _
     )
     Call logger_.Info("updatedRecords_.Rows.Count = " & CStr(updatedRecords_.Rows.Count)) ' "updatedRecords_.Rows.Count = 6"
@@ -411,8 +497,13 @@ Sub ExamplesForExcelWorksheetClass_FilterRecords()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
   
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -443,15 +534,19 @@ Sub ExamplesForExcelWorksheetClass_FilterRecords()
         Second_Level_Delimiter & _
       "price" & First_Level_Delimiter & CStr(400) _
       )
-  
+    
     ' Filter records.
     Dim filteredRecords_ As Range
     Call .FilterRecords( _
       "item" & First_Level_Delimiter & "*c*" & Or_Operator & "*g*", _
       "item" & First_Level_Delimiter & CStr(xlDescending), _
       "price", _
+      True, _
       filteredRecords_ _
     )
+    If filteredRecords_ Is Nothing Then
+      Stop
+    End If
     Call logger_.Info("filteredRecords_.Rows.Count = " & CStr(filteredRecords_.Rows.Count)) ' "filteredRecords_.Rows.Count = 3"
     Call logger_.Info("filteredRecords_.Columns.Count = " & CStr(filteredRecords_.Columns.Count)) ' "filteredRecords_.Columns.Count = 2"
   End With
@@ -483,8 +578,13 @@ Sub ExamplesForExcelWorksheetClass_ReadTable()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
     
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -557,8 +657,13 @@ Sub ExamplesForExcelWorksheetClass_DeleteRecords()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet( _
+        "SampleTable", _
+        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
+      ) _
+    .ExcelWorksheet("SampleTable")
     
   ' Disable screen updating.
   excelFirst_.ScreenUpdatingFlag = False
@@ -594,6 +699,7 @@ Sub ExamplesForExcelWorksheetClass_DeleteRecords()
     Dim deletedRecords_ As Range
     Call .DeleteRecords( _
       "item" & First_Level_Delimiter & "*c*" & Or_Operator & "*g*", _
+      True, _
       deletedRecords_ _
     )
     
@@ -630,8 +736,10 @@ Sub ExamplesForExcelFirstClass_ClearWorksheet()
   ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheet("Screen"). _
-    ExcelWorksheet("Screen")
+    excelFirst_ _
+    .ExcelWorkbook(This) _
+      .BindExcelWorksheet("Screen") _
+    .ExcelWorksheet("Screen")
   
   ' Clear Worksheet.
   excelFirst_.ScreenUpdatingFlag = False
@@ -642,34 +750,3 @@ Sub ExamplesForExcelFirstClass_ClearWorksheet()
   Call logger_.UnstackName
   
 End Sub
-
-'* This example teaches how to bind ExcelWorkbook and ExcelWorksheet.
-'* @attention This example requires two Worksheets called "(SampleTable)" and "((SampleTable))".
-Sub ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheetForTable()
-
-  ' Instantiate First class.
-  Dim excelFirst_ As ExcelFirstClass
-  Set excelFirst_ = New ExcelFirstClass
-  
-  ' Set INFO as logger level.
-  Dim logger_ As LoggerClass
-  Set logger_ = excelFirst_.Logger
-  Call logger_.SetLevel(Logger_Level.Info)
-  
-  ' Stack name.
-  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheetForTable")
-  
-  ' Bind ExcelWorksheet. (Note) ExcelWorkbook that refers Application.ThisWorkbook is already created by ExcelFirst object.
-  Dim excelWorksheet_ As ExcelWorksheetClass
-  Set excelWorksheet_ = _
-    excelFirst_.ExcelWorkbook("").BindExcelWorksheetForTable("SampleTable"). _
-    ExcelWorksheet("SampleTable")
-  logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Name = Screen"
-  logger_.Info ("excelWorksheet_.WorksheetForEditingTable.Name = " & excelWorksheet_.WorksheetForEditingTable.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheetForTable - excelWorksheet_.WorksheetForEditingTable.Name = (SampleTable)"
-  logger_.Info ("excelWorksheet_.WorksheetForReadingTable.Name = " & excelWorksheet_.WorksheetForReadingTable.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheetForTable - excelWorksheet_.WorksheetForReadingTable.Name = ((SampleTable))"
-  
-  ' Unstack name.
-  Call logger_.UnstackName
-  
-End Sub
-

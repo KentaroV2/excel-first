@@ -27,14 +27,18 @@ Public Const False__ As String = "False" '* "False" label. This label as string 
 Public Const Null__ As String = "Null" '* "Null" label. This label is filled in empty variants or record values to ensure completeness.
 Public Const This As String = "This" '* "This" label. This label is used for representing "this" Workbook mainly.
 Public Const Dot As String = "." '* "Dot" label. This label is used for defining delimiter between file name and file attribute mainly.
-Public Const First_Level_Delimiter As String = vbTab '* First-level delimiter.
-Public Const Second_Level_Delimiter As String = vbTab & vbTab '* Second-level delimiter.
+' Public Const First_Level_Delimiter As String = vbTab '* First-level delimiter.
+Public Const First_Level_Delimiter As String = "=====" '* First-level delimiter."
+' Public Const Second_Level_Delimiter As String = vbTab & vbTab '* Second-level delimiter.
+Public Const Second_Level_Delimiter As String = "&&&&&" '* Second-level delimiter.
 Public Const Field_Date_Delimiter As String = "__" '* Field-Date delimiter. (ie. "ChargeAmount__Y2019M04")
 Public Const And_Operator As String = "&&&&&" '* And operator (five ampersand marks in a row).
 Public Const Or_Operator As String = "|||||" '* Or operator (five pipeline marks in a row).
 Public Const Path_Separator As String = "\" '* Path separator.
 Public Const Excel_2010_2007_File_Attribute As String = "xlsx" '* "Excel 2010 and 2007" file attribute.
 Public Const Excel_97_2003_File_Attribute As String = "xls" '* "Excel 97 - 2003" file attribute.
+Public Const Left_Parentheses As String = "(" '* Left parentheses.
+Public Const Right_Parentheses As String = ")" '* Right parentheses.
 Public Enum Logger_Level '* Logger level.
   Off '* Log nothing.
   Fatal
@@ -108,5 +112,3 @@ Public Enum Command_Type '* Command type for Recordset object.
   adCmdStoredProc = 4
   adCmdUnknown = 8
 End Enum
-Public Const Left_Parentheses As String = "(" '* Left parentheses.
-Public Const Right_Parentheses As String = ")" '* Right parentheses.
