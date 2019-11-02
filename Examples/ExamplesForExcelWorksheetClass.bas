@@ -704,7 +704,7 @@ Sub ExamplesForExcelWorksheetClass_DeleteRecords()
     )
     
     ' Read records.
-    Call logger_.Info("deletedRecords_.Rows.Count = " & CStr(deletedRecords_.Rows.Count)) ' "deletedRecords_.Rows.Count = 3"
+    Call logger_.Info("deletedRecords_.Rows.Count = " & CStr(deletedRecords_.Rows.Count)) ' "deletedRecords_.Rows.Count = 4"
     Call logger_.Info("deletedRecords_.Columns.Count = " & CStr(deletedRecords_.Columns.Count)) ' "deletedRecords_.Columns.Count = 2"
   End With
   

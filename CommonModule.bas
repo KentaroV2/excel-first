@@ -27,6 +27,8 @@ Public Const False__ As String = "False" '* "False" label. This label as string 
 Public Const Null__ As String = "Null" '* "Null" label. This label is filled in empty variants or record values to ensure completeness.
 Public Const This As String = "This" '* "This" label. This label is used for representing "this" Workbook mainly.
 Public Const Dot As String = "." '* "Dot" label. This label is used for defining delimiter between file name and file attribute mainly.
+Public Const The_Oldest_Date As String = "Y0000M00D00" '* The beginning date. This label is used for finding the latest date.
+Public Const The_Latest_Date As String = "Y9999M99D99" '* '* The latest date. This label is used for finding the oldest date.
 ' Public Const First_Level_Delimiter As String = vbTab '* First-level delimiter.
 Public Const First_Level_Delimiter As String = "=====" '* First-level delimiter."
 ' Public Const Second_Level_Delimiter As String = vbTab & vbTab '* Second-level delimiter.
@@ -68,7 +70,9 @@ Public Enum Exit_Status '* Exit status
   DegreeDetails_Is_Not_Valid
   Database_Connection_Type_Is_Not_Valid
   Parameters_For_Database_Connection_Is_Not_Defined
+  WordsReplacingMap_Is_Not_Defined
   Miscellaneous
+  CustomError
 End Enum
 Public Enum Worksheet_Row '* Worksheet row
   Top = 1
