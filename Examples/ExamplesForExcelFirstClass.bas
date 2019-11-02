@@ -55,29 +55,29 @@ Sub ExamplesForExcelFirstClass_ChangeDateToString()
   ' Change date to string.
   Dim now__ As Date
   now__ = Now
-  Dim string__ As String
+  Dim String__ As String
   Dim degreeDetails_ As String
   degreeDetails_ = "Y"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "M"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "D"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "h"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "m"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "s"
-  Call excelFirst_.ChangeDateToString(now__, string__, degreeDetails_)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__, degreeDetails_)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   degreeDetails_ = "(undefined)"
-  Call excelFirst_.ChangeDateToString(now__, string__)
-  Call logger_.Info(degreeDetails_ & ":" & string__)
+  Call excelFirst_.ChangeDateToString(now__, String__)
+  Call logger_.Info(degreeDetails_ & ":" & String__)
   
   ' Unstack name.
   Call logger_.UnstackName

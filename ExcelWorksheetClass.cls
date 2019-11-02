@@ -177,7 +177,10 @@ Execute:
         Set Me.WorksheetForEditingTable = Nothing
         Set Me.WorksheetForReadingTable = Nothing
       End If
-    Case Database_Connection_Type.MicrosoftExcelWorksheet
+    Case _
+      Database_Connection_Type.MicrosoftExcelWorksheet, _
+      Database_Connection_Type.Oracle, _
+      Database_Connection_Type.MicrosoftAccess
       For Each worksheet_ In worksheets_
         If ( _
           worksheet_.Name = _
@@ -197,69 +200,57 @@ Execute:
           Set Me.WorksheetForReadingTable = worksheet_
         End If
       Next
-      If ( _
-        Me.WorksheetForEditingTable Is Nothing _
-        Or _
-        Me.WorksheetForReadingTable Is Nothing _
-      ) Then
-        Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
-      Else
-        Set Me.Worksheet = Nothing
-      End If
-    Case _
-      Database_Connection_Type.Oracle, _
-      Database_Connection_Type.MicrosoftAccess
-      For Each worksheet_ In worksheets_
-        If ( _
-          worksheet_.Name = _
-            Left_Parentheses & _
-            Left_Parentheses & _
-            Name & _
-            Right_Parentheses & _
-            Right_Parentheses _
-        ) Then
-          Set Me.WorksheetForReadingTable = worksheet_
-        End If
-      Next
-      If ( _
-        Me.WorksheetForReadingTable Is Nothing _
-      ) Then
-        Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
-      Else
-        Set Me.Worksheet = Nothing
-      End If
       Select Case databaseConnectionType_
-        Case Database_Connection_Type.Oracle
-          Dim connection_ As String
-          connection_ = "Provider=OraOLEDB.Oracle"
-          If (dataSource_ <> "") Then
-            connection_ = connection_ & ";" & "Data Source=" & dataSource_
-            If (user_ <> "") Then
-              connection_ = connection_ & ";" & "User ID=" & user_
-              If (password_ <> "") Then
-                connection_ = connection_ & ";" & "Password=" & password_
-              End If
-            End If
+        Case Database_Connection_Type.MicrosoftExcelWorksheet
+          If ( _
+            Me.WorksheetForEditingTable Is Nothing _
+            Or _
+            Me.WorksheetForReadingTable Is Nothing _
+          ) Then
+            Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
+          Else
+            Set Me.Worksheet = Nothing
           End If
-        Case Database_Connection_Type.MicrosoftAccess
-          connection_ = "Provider=Microsoft.ACE.OLEDB.12.0"
-          If (dataSource_ <> "") Then
-            connection_ = connection_ & ";" & "Data Source=" & dataSource_
-            If (user_ <> "") Then
-              connection_ = connection_ & ";" & "User Id=" & user_
-              If (password_ <> "") Then
-                connection_ = connection_ & ";" & "Password=" & password_
-              End If
-            End If
+        Case _
+          Database_Connection_Type.Oracle, _
+          Database_Connection_Type.MicrosoftAccess
+          If (Me.WorksheetForReadingTable Is Nothing) Then
+            Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
+          Else
+            Set Me.Worksheet = Nothing
           End If
-      End Select
-      If (dataSource_ = "") Then
-        Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
-      End If
-      Debug.Print "connection_ : " & connection_
-      Set myDatabaseConnection = CreateObject("ADODB.Connection")
-      Set myRecordset = CreateObject("ADODB.Recordset")
-      myDatabaseConnection.Open connection_
+          Select Case databaseConnectionType_
+            Case Database_Connection_Type.Oracle
+              Dim connection_ As String
+              connection_ = "Provider=OraOLEDB.Oracle"
+              If (dataSource_ <> "") Then
+                connection_ = connection_ & ";" & "Data Source=" & dataSource_
+                If (user_ <> "") Then
+                  connection_ = connection_ & ";" & "User ID=" & user_
+                  If (password_ <> "") Then
+                    connection_ = connection_ & ";" & "Password=" & password_
+                  End If
+                End If
+              End If
+            Case Database_Connection_Type.MicrosoftAccess
+              connection_ = "Provider=Microsoft.ACE.OLEDB.12.0"
+              If (dataSource_ <> "") Then
+                connection_ = connection_ & ";" & "Data Source=" & dataSource_
+                If (user_ <> "") Then
+                  connection_ = connection_ & ";" & "User Id=" & user_
+                  If (password_ <> "") Then
+                    connection_ = connection_ & ";" & "Password=" & password_
+                  End If
+                End If
+              End If
+            End Select
+            If (dataSource_ = "") Then
+              Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
+            End If
+          Set myDatabaseConnection = CreateObject("ADODB.Connection")
+          Set myRecordset = CreateObject("ADODB.Recordset")
+          myDatabaseConnection.Open connection_
+        End Select
     Case Else
       Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
   End Select
@@ -303,6 +294,67 @@ Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
   Set Unbind = Me
+  Exit Function
+Error:
+  exitStatus_ = Err.Number
+  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
+  GoTo Exit__
+End Function
+
+'* Find keyword.
+'* @param[in] What. Keyword.
+'* @param[in] LookIn. (Optional) Look in. Default value is xlValues.
+'* @param[in] FoundRow. (Optional) Look in. Default value is xlValues.
+'* @param[in] FoundColumn. (Optional) Look in. Default value is xlValues.
+'* @param[in] LookAt. (Optional) Look at. Default value is xlWhole.
+'* @param[in] SearchOrder. (Optional) Search order. Default value is xlByRows.
+'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @return ExcelWorksheetClass. Self.
+Public Function Find( _
+  What As String, _
+  Optional FoundRow As Long, _
+  Optional FoundColumn As Long, _
+  Optional LookIn As Long = xlValues, _
+  Optional LookAt As Long = xlWhole, _
+  Optional SearchOrder As Long = xlByRows, _
+  Optional ExitStatus As Long _
+) As ExcelWorksheetClass
+Initialize:
+  On Error GoTo Error
+  Dim logger_ As LoggerClass
+  Set logger_ = Me.Logger
+  Call logger_.StackName(Me.Name & "." & "Find")
+  Dim exitStatus_ As Long
+  exitStatus_ = Exit_Status.Success
+Execute:
+  Select Case Me.DatabaseConnectionType
+    Case _
+      Database_Connection_Type.None
+      ' Do something.
+      With Me.Worksheet
+        Dim range_ As Range
+        Set range_ = .Cells.Find( _
+          What:=What, _
+          After:=.Cells(.Cells.Rows.Count, .Cells.Columns.Count), _
+          LookIn:=LookIn, _
+          LookAt:=LookAt, _
+          SearchOrder:=SearchOrder _
+        )
+      End With
+      If (range_ Is Nothing) Then
+        FoundRow = 0
+        FoundColumn = 0
+      Else
+        FoundRow = range_.Row
+        FoundColumn = range_.Column
+      End If
+    Case Else
+      Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
+  End Select
+Exit__:
+  Call logger_.UnstackName
+  ExitStatus = exitStatus_
+  Set Find = Me
   Exit Function
 Error:
   exitStatus_ = Err.Number
@@ -591,57 +643,51 @@ Execute:
       ) _
     ).SpecialCells(xlCellTypeVisible)
   End With
-  With Me.WorksheetForReadingTable
-    .Cells.Clear
-    filteredAndSortedRecords.Copy .Range( _
-      .Cells(Table_Row.Field, Table_Column.Left__), _
-      .Cells(Table_Row.Field, Table_Column.Left__) _
-    )
-    If (DuplicatesRemovingField <> "") Then
-      For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
-        If (DuplicatesRemovingField = fields_(Table_Row.Field, indexOfFields_)) Then
-          Exit For
-        End If
+  If ( _
+    DuplicatesRemovingField <> "" _
+    Or _
+    IsResultRead _
+  ) Then
+    With Me.WorksheetForReadingTable
+      .Cells.Clear
+      Dim indexOfArea_ As Long
+      Dim copiedRow_ As Long
+      copiedRow_ = Table_Row.Field
+      For indexOfArea_ = 1 To filteredAndSortedRecords.Areas.Count
+        Dim row_ As Long
+        row_ = filteredAndSortedRecords.Areas(indexOfArea_).Row
+        Dim column_ As Long
+        column_ = filteredAndSortedRecords.Areas(indexOfArea_).Column
+        Dim rowsCount_ As Long
+        rowsCount_ = filteredAndSortedRecords.Areas(indexOfArea_).Rows.Count
+        Dim columnsCount_ As Long
+        columnsCount_ = filteredAndSortedRecords.Areas(indexOfArea_).Columns.Count
+        .Range( _
+          .Cells(copiedRow_, column_), _
+          .Cells(copiedRow_ + rowsCount_ - 1, columnsCount_) _
+        ).Value = filteredAndSortedRecords.Areas(indexOfArea_).Value
+        copiedRow_ = copiedRow_ + rowsCount_
       Next
-      .Range( _
-        .Cells(Table_Row.Field, Table_Column.Left__), _
-        .Cells( _
-          .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row, _
-          .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column _
-        ) _
-      ).RemoveDuplicates _
-        Columns:=Array(indexOfFields_), _
-        Header:=xlYes
-'* @todo Fix a bug that defining two or more fields doesn't work properly (by removing duplicates field by field.).
-'    If (SetOfRemovingDuplicates <> "") Then
-'      Dim duplicatesRemovingFields_ As Variant
-'      duplicatesRemovingFields_ = Split(SetOfRemovingDuplicates, First_Level_Delimiter)
-'      Dim duplicatesRemovingColumns_() As Long
-'      ReDim duplicatesRemovingColumns_(0)
-'      Dim indexOfDuplicatesRemovingFields_ As Long
-'      For indexOfDuplicatesRemovingFields_ = LBound(duplicatesRemovingFields_) To UBound(duplicatesRemovingFields_)
-'        For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
-'          If (duplicatesRemovingFields_(indexOfDuplicatesRemovingFields_) = fields_(Table_Row.Field, indexOfFields_)) Then
-'            duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_)) = indexOfFields_
-'            ReDim Preserve duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_) + 1)
-'            Exit For
-'          End If
-'        Next
-'      Next
-'      ReDim Preserve duplicatesRemovingColumns_(UBound(duplicatesRemovingColumns_) - 1)
-'      .Range( _
-'        .Cells(Table_Row.Field, Table_Column.Left), _
-'        .Cells( _
-'          .Cells(.Rows.Count, Table_Column.Left).End(xlUp).Row, _
-'          .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column _
-'        ) _
-'      ).RemoveDuplicates _
-'        Columns:=.Evaluate(duplicatesRemovingColumns_), _
-'        Header:=xlYes
+      If (DuplicatesRemovingField <> "") Then
+        For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+          If (DuplicatesRemovingField = fields_(Table_Row.Field, indexOfFields_)) Then
+            Exit For
+          End If
+        Next
+        .Range( _
+          .Cells(Table_Row.Field, Table_Column.Left__), _
+          .Cells( _
+            .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row, _
+            .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column _
+          ) _
+        ).RemoveDuplicates _
+          Columns:=Array(indexOfFields_), _
+          Header:=xlYes
+      End If
+    End With
+    If (IsResultRead) Then
+      Call Me.ReadRecords(FilteredRecords)
     End If
-  End With
-  If (IsResultRead) Then
-    Call Me.ReadRecords(FilteredRecords)
   End If
 Exit__:
   Call logger_.UnstackName
@@ -729,11 +775,6 @@ Execute:
         updatedField_ = CStr(fieldAndValue_(Field_And_Value.Field))
         fieldsAndValuesMap_(updatedField_) = _
           CStr(fieldAndValue_(Field_And_Value.Value))
-
-'        If (updatedField_ = "BusinessCode") And (CStr(fieldAndValue_(Field_And_Value.Value)) = "530011") Then
-'          Stop
-'        End If
-        
         If (InStr(updatedField_, Field_Date_Delimiter) <> 0) Then
           Dim fields_ As Variant
           fields_ = .Range( _
@@ -779,29 +820,61 @@ Execute:
       Next
       If (SetOfFiltedFields <> "") Then
         Call Me.FilterRecords(SetOfFiltedFields)
-        Dim updatedRecords_ As Range
-        Set updatedRecords_ = _
-          .Range( _
-            .Cells(Table_Row.Field, Table_Column.Left__), _
-            .Cells(Table_Row.Field, Table_Column.Left__) _
-          ).CurrentRegion.SpecialCells(xlCellTypeVisible)
-        Dim updatedCell_ As Range
-        For Each updatedCell_ In updatedRecords_
-          If ( _
-            (updatedCell_.Row >= Table_Row.TopOfRecord) _
-            And _
-            (fieldsAndValuesMap_.Exists(CStr(updatedRecords_(Table_Row.Field, updatedCell_.Column)))) _
-          ) Then
-            updatedCell_ = fieldsAndValuesMap_(CStr(updatedRecords_(Table_Row.Field, updatedCell_.Column)))
-          End If
+        Dim rightColumnOfFields_ As Long
+        rightColumnOfFields_ = .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column
+        Dim lastRowOfRecord_ As Long
+        lastRowOfRecord_ = Table_Row.Field
+        For indexOfFields_ = Table_Column.Left__ To rightColumnOfFields_
+          lastRowOfRecord_ = CLng( _
+            Application.WorksheetFunction.Max( _
+              .Cells(.Rows.Count, indexOfFields_).End(xlUp).Row, _
+              lastRowOfRecord_ _
+            ) _
+          )
         Next
+        If (lastRowOfRecord_ > Table_Row.Field) Then
+          fields_ = .Range( _
+            .Cells(Table_Row.Field, Table_Column.Left__), _
+            .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft) _
+          )
+          For indexOfFields_ = LBound(fields_, 2) To UBound(fields_, 2)
+            field_ = CStr(fields_(Table_Row.Field, indexOfFields_))
+            If (fieldsAndValuesMap_.Exists(field_)) Then
+              .Range( _
+                  .Cells(Table_Row.TopOfRecord, indexOfFields_), _
+                  .Cells(lastRowOfRecord_, indexOfFields_) _
+              ).SpecialCells(xlCellTypeVisible) = _
+                fieldsAndValuesMap_(field_)
+            End If
+          Next
+        End If
         If (IsResultRead) Then
-          With Me.WorksheetForReadingTable
-            .Cells.Clear
-            updatedRecords_.Copy .Range( _
+          Dim updatedRecords_ As Range
+          Set updatedRecords_ = _
+            .Range( _
               .Cells(Table_Row.Field, Table_Column.Left__), _
               .Cells(Table_Row.Field, Table_Column.Left__) _
-            )
+            ).CurrentRegion.SpecialCells(xlCellTypeVisible)
+          With Me.WorksheetForReadingTable
+            .Cells.Clear
+            Dim indexOfArea_ As Long
+            Dim copiedRow_ As Long
+            copiedRow_ = Table_Row.Field
+            For indexOfArea_ = 1 To updatedRecords_.Areas.Count
+              Dim row_ As Long
+              row_ = updatedRecords_.Areas(indexOfArea_).Row
+              Dim column_ As Long
+              column_ = updatedRecords_.Areas(indexOfArea_).Column
+              Dim rowsCount_ As Long
+              rowsCount_ = updatedRecords_.Areas(indexOfArea_).Rows.Count
+              Dim columnsCount_ As Long
+              columnsCount_ = updatedRecords_.Areas(indexOfArea_).Columns.Count
+              .Range( _
+                .Cells(copiedRow_, column_), _
+                .Cells(copiedRow_ + rowsCount_ - 1, columnsCount_) _
+              ).Value = updatedRecords_.Areas(indexOfArea_).Value
+              copiedRow_ = copiedRow_ + rowsCount_
+            Next
           End With
           Call Me.ReadRecords(UpdatedRecords)
         End If
@@ -823,18 +896,18 @@ Execute:
         .Range( _
           .Cells(rowOfInsertedRecord, LBound(fields_, Size_Dimentions.Column)), _
           .Cells(rowOfInsertedRecord, UBound(fields_, Size_Dimentions.Column)) _
-        ) = insertedRecord_
+        ).Value = insertedRecord_
         If (IsResultRead) Then
           With Me.WorksheetForReadingTable
             .Cells.Clear
             .Range( _
               .Cells(Table_Row.Field, LBound(fields_, Size_Dimentions.Column)), _
               .Cells(Table_Row.Field, UBound(fields_, Size_Dimentions.Column)) _
-            ) = fields_
+            ).Value = fields_
             .Range( _
               .Cells(Table_Row.TopOfRecord, LBound(fields_, Size_Dimentions.Column)), _
               .Cells(Table_Row.TopOfRecord, UBound(fields_, Size_Dimentions.Column)) _
-            ) = insertedRecord_
+            ).Value = insertedRecord_
           End With
           Call Me.ReadRecords(UpdatedRecords)
         End If
@@ -847,9 +920,6 @@ Exit__:
   Set UpdateRecords = Me
   Exit Function
 Error:
-'  Debug.Print "SetOfFieldsAndValues = " & SetOfFieldsAndValues
-'  Stop
-  
   exitStatus_ = Err.Number
   Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
@@ -885,10 +955,24 @@ Execute:
     If (IsResultRead) Then
       With Me.WorksheetForReadingTable
         .Cells.Clear
-        deletedRecords_.Copy .Range( _
-          .Cells(Table_Row.Field, Table_Column.Left__), _
-          .Cells(Table_Row.Field, Table_Column.Left__) _
-        )
+        Dim indexOfArea_ As Long
+        Dim copiedRow_ As Long
+        copiedRow_ = Table_Row.Field
+        For indexOfArea_ = 1 To deletedRecords_.Areas.Count
+          Dim row_ As Long
+          row_ = deletedRecords_.Areas(indexOfArea_).Row
+          Dim column_ As Long
+          column_ = deletedRecords_.Areas(indexOfArea_).Column
+          Dim rowsCount_ As Long
+          rowsCount_ = deletedRecords_.Areas(indexOfArea_).Rows.Count
+          Dim columnsCount_ As Long
+          columnsCount_ = deletedRecords_.Areas(indexOfArea_).Columns.Count
+          .Range( _
+            .Cells(copiedRow_, column_), _
+            .Cells(copiedRow_ + rowsCount_ - 1, columnsCount_) _
+          ).Value = deletedRecords_.Areas(indexOfArea_).Value
+          copiedRow_ = copiedRow_ + rowsCount_
+        Next
         Call Me.ReadRecords(DeletedRecords)
       End With
     End If
@@ -906,7 +990,7 @@ Error:
 End Function
 
 '* Execute SQL.
-'* @param[in] Sql. sql statement.
+'* @param[in] Sql. SQL statement.
 '* @param[out] ExecutedRecords. (Optional) Executed records.
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
@@ -927,18 +1011,25 @@ Execute:
     Case _
       Database_Connection_Type.Oracle, _
       Database_Connection_Type.MicrosoftAccess
-      Dim worksheet_ As Worksheet
-      Set worksheet_ = Me.WorksheetForReadingTable
-      With worksheet_
+      With Me.WorksheetForEditingTable
         .Cells.Clear
-        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenDynamic, Lock_Type.adLockOptimistic, Command_Type.adCmdText)
+        ' @todo Add argument that identifies read-only-mode and edit-mode.
+'        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenDynamic, Lock_Type.adLockOptimistic, Command_Type.adCmdText)
+        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenStatic, Lock_Type.adLockReadOnly, Command_Type.adCmdText)
         Dim indexOfField As Long
         For indexOfField = 1 To myRecordset.Fields.Count
-          .Cells(1, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
+          .Cells(Table_Row.Field, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
         Next
-        .Cells(2, 1).CopyFromRecordset myRecordset
-        myRecordset.Close
+        .Cells(Table_Row.TopOfRecord, Table_Column.Left__).CopyFromRecordset myRecordset
+        Set ExecutedRecords = .Range( _
+          .Cells(Table_Row.Field, Table_Column.Left__), _
+          .Cells( _
+            .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row, _
+            .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column _
+          ) _
+        )
       End With
+      myRecordset.Close
     Case Else
       Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
   End Select
