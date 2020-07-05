@@ -32,16 +32,13 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheet()
     excelFirst_ _
     .ExcelWorkbook(This) _
       .BindExcelWorksheet("SampleSheet") _
-    .ExcelWorksheet("SampleSheet")
-    ' The following line also work.
+    .ExcelWorksheets("SampleSheet")
+  ' The following line also work instead of the above.
 '  Set excelWorksheet_ = _
     excelFirst_ _
     .ExcelWorkbook(This) _
-      .BindExcelWorksheet( _
-        "SampleSheet", _
-        "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.None) _
-      ) _
-    .ExcelWorksheet("SampleSheet")
+      .BindExcelWorksheet("SampleSheet", "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.None)) _
+    .ExcelWorksheets("SampleSheet")
   logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Name = SampleSheet"
   logger_.Info ("excelWorksheet_.Worksheet.Name = " & excelWorksheet_.Worksheet.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorkbookAndExcelWorksheet - excelWorksheet_.Worksheet.Name = SampleSheet"
   
@@ -55,9 +52,9 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheet()
 End Sub
 
 
-'* This example teaches how to bind ExcelWorksheet to access the sheet as database.
+'* This example teaches how to bind ExcelWorksheet as database.
 '* @attention This example requires two Worksheets called "(SampleTable)" and "((SampleTable))".
-Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase()
+Sub ExamplesForExcelFirstClass_BindExcelWorksheetAsDatabase()
 
   ' Instantiate First class.
   Dim excelFirst_ As ExcelFirstClass
@@ -69,22 +66,22 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase()
   Call logger_.SetLevel(Logger_Level.Info)
   
   ' Stack name.
-  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase")
+  Call logger_.StackName("ExamplesForExcelFirstClass_BindExcelWorksheetAsDatabase")
   
   ' Bind ExcelWorksheet.
   Dim excelWorksheet_ As ExcelWorksheetClass
   Set excelWorksheet_ = _
     excelFirst_ _
     .ExcelWorkbook(This).BindExcelWorksheet( _
-      "SampleTable", _
+      "(SampleTable)", _
       "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.MicrosoftExcelWorksheet) _
     ) _
-    .ExcelWorksheet("SampleTable")
+    .ExcelWorksheet("(SampleTable)")
   logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessTheSheetAsDatabase - excelWorksheet_.Name = SampleTable"
   
   ' Unbind ExcelWorksheet.
   excelFirst_.ExcelWorkbook(This) _
-    .UnbindExcelWorksheet ("SampleTable")
+    .UnbindExcelWorksheet ("(SampleTable)")
   
   ' Unstack name.
   Call logger_.UnstackName
@@ -116,7 +113,7 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase()
     excelFirst_ _
     .ExcelWorkbook(This) _
       .BindExcelWorksheet( _
-        "SampleTable", _
+        "(SampleTable)", _
         "ConnectionType" & First_Level_Delimiter & CStr(Database_Connection_Type.Oracle) & _
         Second_Level_Delimiter & _
         "DataSource" & First_Level_Delimiter & "<data source>" & _
@@ -125,15 +122,17 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase()
         Second_Level_Delimiter & _
         "Password" & First_Level_Delimiter & "<password>" _
     ) _
-    .ExcelWorksheet("SampleTable")
+    .ExcelWorksheet("(SampleTable)")
+  
   logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase - excelWorksheet_.Name = SampleTable"
   
-  ' Execute sample SQL.
-  Call excelWorksheet_.ExecuteSQL("SELECT TABLE_NAME FROM ALL_TABLES ORDER BY OWNER,TABLE_NAME")
+  ' Execute sample SQL. Modify SQL statement as needed.
+  Dim outputtedRecords_ As Variant
+  Call excelWorksheet_.ExecuteSQL("SELECT TABLE_NAME FROM ALL_TABLES ORDER BY OWNER,TABLE_NAME", , , outputtedRecords_)
   
   ' Unbind ExcelWorksheet.
   excelFirst_.ExcelWorkbook(This) _
-    .UnbindExcelWorksheet ("SampleTable")
+    .UnbindExcelWorksheet ("(SampleTable)")
   
   ' Unstack name.
   Call logger_.UnstackName
@@ -175,14 +174,16 @@ Sub ExamplesForExcelFirstClass_BindExcelWorksheetToAccessDatabaseOnMicrosoftAcce
         "Password" & First_Level_Delimiter & "<password>" _
     ) _
     .ExcelWorksheet("SampleTable")
-  logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase - excelWorksheet_.Name = SampleTable"
+    
+    logger_.Info ("excelWorksheet_.Name = " & excelWorksheet_.Name) ' "yyyy-mm-dd hh:mm:ss [INFO] > ExamplesForExcelFirstClass_BindExcelWorksheetToAccessOracleDatabase - excelWorksheet_.Name = SampleTable"
   
-  ' Execute sample SQL.
-  Call excelWorksheet_.ExecuteSQL("SELECT TABLE_NAME FROM ALL_TABLES ORDER BY OWNER,TABLE_NAME")
+  ' Execute sample SQL. Modify SQL statement as needed.
+  Dim outputtedRecords_ As Variant
+  Call excelWorksheet_.ExecuteSQL("SELECT TABLE_NAME FROM ALL_TABLES ORDER BY OWNER,TABLE_NAME", , , outputtedRecords_)
   
   ' Unbind ExcelWorksheet.
   excelFirst_.ExcelWorkbook(This) _
-    .UnbindExcelWorksheet ("SampleTable")
+    .UnbindExcelWorksheet ("(SampleTable)")
   
   ' Unstack name.
   Call logger_.UnstackName

@@ -17,16 +17,17 @@ Option Explicit
 ' Don't edit the followings:
 ' --------------------------------------------------------------------------------------------------------------
 ' Define members.
+'* @todo データベースの時も利用するシートは1つだけ。
+'* @todo ExcelWorksheetをUnbindした時に、実データが外部にあるシートを削除すべきかどうか決める。
 Private myName As String '* Name (also needed for logging purpose). The name also represent Worksheet name.
 Private myParent As Object '* Parent object. This object should be ExcelWorkbook.
 Private myLogger As LoggerClass '* Logger object
 Private myWorksheet As Worksheet '* Worksheet object.
 Private myDatabaseConnectionType As Long '* Database connection type.
 Private myParametersForDatabaseConnection As String '* Parameters for database connection.
-Private myWorksheetForEditingTable As Worksheet '* Worksheet object for editing table.
-Private myWorksheetForReadingTable As Worksheet '* Worksheet object for reading table.
 Private myDatabaseConnection As Object '* Database connection object.
 Private myRecordset As Object '* Recordset object.
+Private myOutputtedRecords As Object '* Outputted records.
 
 '* Initialize this class.
 Private Sub Class_Initialize()
@@ -88,26 +89,6 @@ Property Get DatabaseConnectionType() As Long
   DatabaseConnectionType = myDatabaseConnectionType
 End Property
 
-'* Set WorksheetForEditingTable property.
-Property Set WorksheetForEditingTable(WorksheetForEditingTable As Worksheet)
-  Set myWorksheetForEditingTable = WorksheetForEditingTable
-End Property
-
-'* Get WorksheetForEditingTable property.
-Property Get WorksheetForEditingTable() As Worksheet
-  Set WorksheetForEditingTable = myWorksheetForEditingTable
-End Property
-
-'* Set WorksheetForReadingTable property.
-Property Set WorksheetForReadingTable(WorksheetForReadingTable As Worksheet)
-  Set myWorksheetForReadingTable = WorksheetForReadingTable
-End Property
-
-'* Get WorksheetForReadingTable property.
-Property Get WorksheetForReadingTable() As Worksheet
-  Set WorksheetForReadingTable = myWorksheetForReadingTable
-End Property
-
 '* Bind Worksheet.
 '* @param[in] Name. This name should be Worksheet name.
 '* @param[in] ParametersForDatabaseConnection. (Optional) Parameters for database connection.
@@ -126,11 +107,19 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
-  If (ParametersForDatabaseConnection <> "") Then
+  ' Set name.
+  Me.Name = Name
+  ' "ParametersForDatabaseConnection" is NOT defined,
+  If (ParametersForDatabaseConnection = "") Then
+    ' Set Database_Connection_Type as MicrosoftExcelWorksheet.
+    Dim databaseConnectionType_ As Long
+    databaseConnectionType_ = Database_Connection_Type.MicrosoftExcelWorksheet
+  ' "ParametersForDatabaseConnection" is defined,
+  Else
+    ' Get parametes.
     Dim parameters_ As Variant
     parameters_ = Split(ParametersForDatabaseConnection, Second_Level_Delimiter)
-    Dim databaseConnectionType_ As Long
-    databaseConnectionType_ = Database_Connection_Type.Miscellaneous
+    databaseConnectionType_ = Database_Connection_Type.Invalid
     Dim indexForParameters_ As Long
     For indexForParameters_ = LBound(parameters_) To UBound(parameters_)
       Dim keyAndValue_ As Variant
@@ -153,9 +142,8 @@ Execute:
           password_ = CStr(value_)
       End Select
     Next
-  Else
-    databaseConnectionType_ = Database_Connection_Type.None
   End If
+  ' Define DatabaseConnectionType.
   Me.DatabaseConnectionType = databaseConnectionType_
   Dim parent_ As Object
   Set parent_ = Me.Parent
@@ -163,98 +151,65 @@ Execute:
   Set workbook_ = parent_.Workbook
   Dim worksheets_ As Sheets
   Set worksheets_ = workbook_.Worksheets
+  ' Find Worksheet matched with given name.
+  Dim worksheet_ As Worksheet
+  For Each worksheet_ In worksheets_
+    If (worksheet_.Name = Name) Then
+      Set Me.Worksheet = worksheet_
+    End If
+  Next
+  If (Me.Worksheet Is Nothing) Then
+    Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
+  End If
+  ' Process depending on databaseConnectionType_.
   Select Case databaseConnectionType_
-    Case Database_Connection_Type.None
-      Dim worksheet_ As Worksheet
-      For Each worksheet_ In worksheets_
-          If (worksheet_.Name = Name) Then
-            Set Me.Worksheet = worksheet_
-          End If
-      Next
-      If (Me.Worksheet Is Nothing) Then
-        Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
-      Else
-        Set Me.WorksheetForEditingTable = Nothing
-        Set Me.WorksheetForReadingTable = Nothing
-      End If
     Case _
       Database_Connection_Type.MicrosoftExcelWorksheet, _
+      Database_Connection_Type.MicrosoftExcelWorksheetAsDatabase
+      ' Do nothing.
+    Case _
       Database_Connection_Type.Oracle, _
       Database_Connection_Type.MicrosoftAccess
-      For Each worksheet_ In worksheets_
-        If ( _
-          worksheet_.Name = _
-            Left_Parentheses & _
-            Name & _
-            Right_Parentheses _
-        ) Then
-          Set Me.WorksheetForEditingTable = worksheet_
-        ElseIf ( _
-          worksheet_.Name = _
-            Left_Parentheses & _
-            Left_Parentheses & _
-            Name & _
-            Right_Parentheses & _
-            Right_Parentheses _
-        ) Then
-          Set Me.WorksheetForReadingTable = worksheet_
+      ' If databaseConnectionType_ is Database_Connection_Type.Oracle,
+      If (databaseConnectionType_ = Database_Connection_Type.Oracle) Then
+        Dim connection_ As String
+        connection_ = "Provider=OraOLEDB.Oracle"
+        If (dataSource_ = "") Then
+          Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
+        Else
+          connection_ = connection_ & ";" & "Data Source=" & dataSource_
+          If (user_ <> "") Then
+            connection_ = connection_ & ";" & "User ID=" & user_
+          End If
+          If (password_ <> "") Then
+            connection_ = connection_ & ";" & "Password=" & password_
+          End If
         End If
-      Next
-      Select Case databaseConnectionType_
-        Case Database_Connection_Type.MicrosoftExcelWorksheet
-          If ( _
-            Me.WorksheetForEditingTable Is Nothing _
-            Or _
-            Me.WorksheetForReadingTable Is Nothing _
-          ) Then
-            Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
-          Else
-            Set Me.Worksheet = Nothing
+      ' If databaseConnectionType_ is Database_Connection_Type.MicrosoftAccess,
+      Else
+        connection_ = "Provider=Microsoft.ACE.OLEDB.12.0"
+        If (dataSource_ = "") Then
+          Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
+        Else
+          connection_ = connection_ & ";" & "Data Source=" & dataSource_
+          If (user_ <> "") Then
+            connection_ = connection_ & ";" & "User Id=" & user_
           End If
-        Case _
-          Database_Connection_Type.Oracle, _
-          Database_Connection_Type.MicrosoftAccess
-          If (Me.WorksheetForReadingTable Is Nothing) Then
-            Call Err.Raise(Exit_Status.Worksheet_Is_Not_Found, Me, "Worksheet_Is_Not_Found")
-          Else
-            Set Me.Worksheet = Nothing
+          If (password_ <> "") Then
+            connection_ = connection_ & ";" & "Password=" & password_
           End If
-          Select Case databaseConnectionType_
-            Case Database_Connection_Type.Oracle
-              Dim connection_ As String
-              connection_ = "Provider=OraOLEDB.Oracle"
-              If (dataSource_ <> "") Then
-                connection_ = connection_ & ";" & "Data Source=" & dataSource_
-                If (user_ <> "") Then
-                  connection_ = connection_ & ";" & "User ID=" & user_
-                  If (password_ <> "") Then
-                    connection_ = connection_ & ";" & "Password=" & password_
-                  End If
-                End If
-              End If
-            Case Database_Connection_Type.MicrosoftAccess
-              connection_ = "Provider=Microsoft.ACE.OLEDB.12.0"
-              If (dataSource_ <> "") Then
-                connection_ = connection_ & ";" & "Data Source=" & dataSource_
-                If (user_ <> "") Then
-                  connection_ = connection_ & ";" & "User Id=" & user_
-                  If (password_ <> "") Then
-                    connection_ = connection_ & ";" & "Password=" & password_
-                  End If
-                End If
-              End If
-            End Select
-            If (dataSource_ = "") Then
-              Call Err.Raise(Exit_Status.Parameters_For_Database_Connection_Is_Not_Defined, Me, "Parameters_For_Database_Connection_Is_Not_Defined")
-            End If
-          Set myDatabaseConnection = CreateObject("ADODB.Connection")
-          Set myRecordset = CreateObject("ADODB.Recordset")
-          myDatabaseConnection.Open connection_
-        End Select
+        End If
+      End If
+      ' Open database connection.
+      Set myDatabaseConnection = CreateObject("ADODB.Connection")
+      myDatabaseConnection.Open connection_
+      ' Initialize recordset.
+      Set myRecordset = CreateObject("ADODB.Recordset")
+      ' Initialize outputted records related objects.
+      Set myOutputtedRecords = CreateObject("Scripting.Dictionary")
     Case Else
       Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
   End Select
-  Me.Name = Name
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
@@ -282,13 +237,14 @@ Initialize:
 Execute:
   Select Case Me.DatabaseConnectionType
     Case _
-      Database_Connection_Type.None, _
-      Database_Connection_Type.MicrosoftExcelWorksheet
+      Database_Connection_Type.MicrosoftExcelWorksheet, _
+      Database_Connection_Type.MicrosoftExcelWorksheetAsDatabase
       ' Do nothing.
     Case _
       Database_Connection_Type.MicrosoftAccess, _
       Database_Connection_Type.Oracle
       myDatabaseConnection.Close
+      '* @todo do something to close database connection.
   End Select
 Exit__:
   Call logger_.UnstackName
@@ -329,7 +285,7 @@ Initialize:
 Execute:
   Select Case Me.DatabaseConnectionType
     Case _
-      Database_Connection_Type.None
+      Database_Connection_Type.MicrosoftExcelWorksheet
       ' Do something.
       With Me.Worksheet
         Dim range_ As Range
@@ -371,14 +327,14 @@ End Function
 '* @param[in] HorizontalAlignment. (Optional) Horizontal alignment
 '* @param[in] VerticalAlignment. (Optional) Vertical alignment
 '* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-Public Sub Clear( _
-  Optional FontName As String = Font_Name, _
-  Optional FontSize As Double = Font_Size, _
-  Optional FontColor As Long = Font_Color, _
-  Optional RowHeight As Double = Row_Height, _
-  Optional ColumnWidth As Long = Column_Width, _
-  Optional HorizontalAlignment As Long = Horizontal_Alignment, _
-  Optional VerticalAlignment As Long = Vertical_Alignment, _
+Public Function Clear( _
+  Optional FontName As String, _
+  Optional FontSize As Double = 0, _
+  Optional FontColor As Long = 0, _
+  Optional RowHeight As Double = 0, _
+  Optional ColumnWidth As Double = 0, _
+  Optional HorizontalAlignment As Long = 0, _
+  Optional VerticalAlignment As Long = 0, _
   Optional ExitStatus As Long _
 )
 Initialize:
@@ -389,94 +345,65 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
+  ' Set current active Worksheet.
   Dim activeWorksheet_ As Worksheet
   Set activeWorksheet_ = Me.Parent.Workbook.ActiveSheet
   With Me.Worksheet
+    ' Activate to-be-cleaned Workseet.
     .Activate
+    ' If AutoFilterMode is TRUE,
     If (.AutoFilterMode) Then
+      ' Deactivate auto filter.
       .Cells.AutoFilter
     End If
-    .Cells.Delete
+    ' Clear all cells.
+    .Cells.Clear
     With .Cells
-      .Font.Name = FontName
-      .Font.Size = FontSize
-      .Font.Color = FontColor
-      .RowHeight = RowHeight
-      .ColumnWidth = ColumnWidth
-      .HorizontalAlignment = HorizontalAlignment
-      .VerticalAlignment = VerticalAlignment
+      ' Set font name if defined.
+      If (FontName <> "") Then
+        .Font.Name = FontName
+      End If
+      ' Set font size if defined.
+      If (FontSize <> 0) Then
+        .Font.Size = FontSize
+      End If
+      ' Set font color if defined.
+      If (FontColor <> 0) Then
+        .Font.Color = FontColor
+      End If
+      ' Set row height if defined.
+      If (RowHeight <> 0) Then
+        .RowHeight = RowHeight
+      End If
+      ' Set column width if defined.
+      If (ColumnWidth <> 0) Then
+        .ColumnWidth = ColumnWidth
+      End If
+      ' Set horizontal alignment if defined.
+      If (HorizontalAlignment <> 0) Then
+        .HorizontalAlignment = HorizontalAlignment
+      End If
+      ' Set vertical alignment if defined.
+      If (VerticalAlignment <> 0) Then
+        .VerticalAlignment = VerticalAlignment
+      End If
     End With
   End With
+  ' Activate the originally activated Worksheet.
   activeWorksheet_.Activate
+  Set activeWorksheet_ = Nothing
 Exit__:
+  Set activeWorksheet_ = Nothing
   Call logger_.UnstackName
+  Set logger_ = Nothing
   ExitStatus = exitStatus_
-  Exit Sub
+  Set Clear = Me
+  Exit Function
 Error:
   exitStatus_ = Err.Number
   Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
   GoTo Exit__
-End Sub
-
-'* Bind Worksheet for table.
-'* @param[in] Name. This name should be Worksheet name.
-'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
-'* @return ExcelWorksheetClass. Self.
-'Public Function BindWorksheetForTable(Name As String, Optional ExitStatus As Long) As ExcelWorksheetClass
-'Initialize:
-'  On Error GoTo Error
-'  Dim logger_ As LoggerClass
-'  Set logger_ = Me.Logger
-'  Call logger_.StackName(Me.Name & "." & "BindWorksheetForTable")
-'  Dim exitStatus_ As Long
-'  exitStatus_ = Exit_Status.Success
-'Execute:
-'  Dim parent_ As Object
-'  Set parent_ = Me.Parent
-'  Dim workbook_ As Workbook
-'  Set workbook_ = parent_.Workbook
-'  Dim worksheets_ As Sheets
-'  Set worksheets_ = workbook_.Worksheets
-'  Dim worksheet_ As Worksheet
-'  For Each worksheet_ In worksheets_
-'      If ( _
-'        worksheet_.Name = _
-'          Left_Parentheses & _
-'          Name & _
-'          Right_Parentheses _
-'      ) Then
-'        Set Me.WorksheetForEditingTable = worksheet_
-'      ElseIf ( _
-'        worksheet_.Name = _
-'          Left_Parentheses & _
-'          Left_Parentheses & _
-'          Name & _
-'          Right_Parentheses & _
-'          Right_Parentheses _
-'      ) Then
-'        Set Me.WorksheetForReadingTable = worksheet_
-'      End If
-'  Next
-'  If ( _
-'    Me.WorksheetForEditingTable Is Nothing _
-'    Or _
-'    Me.WorksheetForReadingTable Is Nothing _
-'  ) Then
-'    exitStatus_ = Exit_Status.Worksheet_Is_Not_Found
-'  Else
-'    Set Me.Worksheet = Nothing
-'    Me.Name = Name
-'  End If
-'Exit__:
-'  Call logger_.UnstackName
-'  ExitStatus = exitStatus_
-'  Set BindWorksheetForTable = Me
-'  Exit Function
-'Error:
-'  exitStatus_ = Err.Number
-'  Call logger_.Error("Error #" & Err.Number & " ( " & Err.Source & " : " & Err.Description & " )")
-'  GoTo Exit__
-'End Function
+End Function
 
 '* Create table.
 '* @param[in] SetOfFields. Set of fields.
@@ -494,27 +421,25 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
-  With Me
-    Set .Worksheet = .WorksheetForEditingTable
-    .Clear
-    Set .Worksheet = .WorksheetForReadingTable
-    .Clear
-    Set .Worksheet = Nothing
-  End With
   If (SetOfFields = "") Then
     Call Err.Raise(Exit_Status.SetOfFields_Is_Not_Defined, , "SetOfFields_Is_Blank")
+  Else
+    Dim Fields As Variant
+    Fields = Split(SetOfFields, First_Level_Delimiter)
+    Dim worksheet_ As Worksheet
+    Set worksheet_ = Me.Worksheet
+    With worksheet_
+      .Cells.Clear
+      Dim lboundOfFields_ As Long
+      lboundOfFields_ = UBound(Fields)
+      Dim uboundOfFields_ As Long
+      uboundOfFields_ = UBound(Fields)
+      .Range( _
+          .Cells(Worksheet_Row.Top, Worksheet_Column.Left__), _
+          .Cells(Worksheet_Row.Top, Worksheet_Column.Left__ + uboundOfFields_ - lboundOfFields_) _
+        ).Value = Fields
+    End With
   End If
-  Dim Fields As Variant
-  Fields = Split(SetOfFields, First_Level_Delimiter)
-  Dim worksheet_ As Worksheet
-  '* @todo Should we clear not only text but also other elements like drawings?
-  With Me.WorksheetForEditingTable
-    .Cells.Clear
-    .Range( _
-        .Cells(Worksheet_Row.Top, Worksheet_Column.Left__), _
-        .Cells(Worksheet_Row.Top, Worksheet_Column.Left__ + UBound(Fields) - LBound(Fields)) _
-      ) = Fields
-  End With
 Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
@@ -990,13 +915,17 @@ Error:
 End Function
 
 '* Execute SQL.
-'* @param[in] Sql. SQL statement.
-'* @param[out] ExecutedRecords. (Optional) Executed records.
-'* @param[out] ExitStatus (Optional) Exit status. Zero means success.
+'* @param[in] SqlStatement. SQL statement.
+'* @param[in] LockType. Lock type. adLockReadOnly is defined when the argument is NOT defined.
+'* @param[in] Cached. Whether cached record is used. TRUE is defined when the argument is NOT defined.
+'* @param[out] OutputtedRecords (Optional). Outputted records.
+'* @param[out] ExitStatus (Optional). Exit status. Zero means success.
 '* @return ExcelWorksheetClass. Self.
 Public Function ExecuteSQL( _
-  Sql As String, _
-  Optional ExecutedRecords As Range, _
+  SqlStatement As String, _
+  Optional LockType As Long = Lock_Type.adLockReadOnly, _
+  Optional Cached As Boolean = True, _
+  Optional OutputtedRecords As Variant, _
   Optional ExitStatus As Long _
 ) As ExcelWorksheetClass
 Initialize:
@@ -1007,29 +936,79 @@ Initialize:
   Dim exitStatus_ As Long
   exitStatus_ = Exit_Status.Success
 Execute:
+  ' Process depending on DatabaseConnectionType.
   Select Case Me.DatabaseConnectionType
     Case _
       Database_Connection_Type.Oracle, _
       Database_Connection_Type.MicrosoftAccess
-      With Me.WorksheetForEditingTable
-        .Cells.Clear
-        ' @todo Add argument that identifies read-only-mode and edit-mode.
-'        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenDynamic, Lock_Type.adLockOptimistic, Command_Type.adCmdText)
-        Call myRecordset.Open(Sql, myDatabaseConnection, Cursor_Type.adOpenStatic, Lock_Type.adLockReadOnly, Command_Type.adCmdText)
-        Dim indexOfField As Long
-        For indexOfField = 1 To myRecordset.Fields.Count
-          .Cells(Table_Row.Field, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
+      With Me.Worksheet
+        Dim outputtedRecords_ As Variant
+        Dim key_ As Variant
+        For Each key_ In myOutputtedRecords
+          Dim splittedKey_ As Variant
+          splittedKey_ = Split(key_, First_Level_Delimiter)
+          Dim sqlStatement_ As String
+          sqlStatement_ = splittedKey_(0)
+          Dim timestamp_ As Date
+          timestamp_ = CDate(splittedKey_(1))
+          ' If outputted records is out of date,
+          If (DateDiff("s", timestamp_, Now) > 60) Then
+            ' Remove the records.
+            myOutputtedRecords.Remove (key_)
+          ' If outputted records is effective,
+          Else
+            ' If given SQL statement matches,
+            If (sqlStatement_ = SqlStatement) Then
+              ' Set outputted records to OutputtedRecords.
+              outputtedRecords_ = myOutputtedRecords(key_)
+              Debug.Print "cached !"
+            End If
+          End If
         Next
-        .Cells(Table_Row.TopOfRecord, Table_Column.Left__).CopyFromRecordset myRecordset
-        Set ExecutedRecords = .Range( _
-          .Cells(Table_Row.Field, Table_Column.Left__), _
-          .Cells( _
-            .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row, _
-            .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column _
-          ) _
-        )
+        key_ = Empty
+        If (IsEmpty(outputtedRecords_)) Then
+          ' Process depending on LockType.
+          Select Case LockType
+            ' In case that LockType is valid,
+            Case _
+              Lock_Type.adLockReadOnly, _
+              Lock_Type.adLockPessimistic, _
+              Lock_Type.adLockOptimistic, _
+              Lock_Type.adLockBatchOptimistic
+                ' Open recordset.
+              Call myRecordset.Open(SqlStatement, myDatabaseConnection, Cursor_Type.adOpenStatic, LockType, Command_Type.adCmdText)
+            ' In case that LockType is NOT valid,
+            Case Else
+              Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
+          End Select
+          ' Output fields to Worksheet.
+          .Cells.Clear
+          Dim indexOfField As Long
+          For indexOfField = 1 To myRecordset.Fields.Count
+            .Cells(Table_Row.Field, indexOfField).Value = myRecordset.Fields(indexOfField - 1).Name
+          Next
+          ' Output records to Worksheet.
+          .Cells(Table_Row.TopOfRecord, Table_Column.Left__).CopyFromRecordset myRecordset
+          ' Read both fields and records.
+          Dim bottomRow_ As Long
+          bottomRow_ = .Cells(.Rows.Count, Table_Column.Left__).End(xlUp).Row
+          Dim rightColumn_ As Long
+          rightColumn_ = .Cells(Table_Row.Field, .Columns.Count).End(xlToLeft).Column
+          outputtedRecords_ = .Range( _
+            .Cells(Table_Row.Field, Table_Column.Left__), _
+            .Cells(bottomRow_, rightColumn_) _
+          ).Value
+          .Cells.Clear
+          ' Close recordset.
+          myRecordset.Close
+          ' Register outputted records.
+          myOutputtedRecords(SqlStatement & First_Level_Delimiter & Format(Now, "yyyy-mm-dd hh:nn:ss")) = outputtedRecords_
+          Debug.Print CStr(SqlStatement & First_Level_Delimiter & Format(Now, "yyyy-mm-dd hh:nn:ss"))
+        End If
+        ' Set OutputtedRecords.
+        OutputtedRecords = outputtedRecords_
+        outputtedRecords_ = Empty
       End With
-      myRecordset.Close
     Case Else
       Call Err.Raise(Exit_Status.Database_Connection_Type_Is_Not_Valid, Me, "Database_Connection_Type_Is_Not_Valid")
   End Select
@@ -1037,6 +1016,7 @@ Exit__:
   Call logger_.UnstackName
   ExitStatus = exitStatus_
   Set ExecuteSQL = Me
+  Set logger_ = Nothing
   Exit Function
 Error:
   exitStatus_ = Err.Number

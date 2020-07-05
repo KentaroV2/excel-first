@@ -25,22 +25,27 @@ Public Const Undefined As String = "Undefined" '* "undefined" label. This label 
 Public Const True__ As String = "True" '* "True" label. This label as string type prevents Excel cells from interpreting boolean value as boolean type unintentoinally.
 Public Const False__ As String = "False" '* "False" label. This label as string type prevents Excel cells from interpreting boolean value as boolean type unintentoinally.
 Public Const Null__ As String = "Null" '* "Null" label. This label is filled in empty variants or record values to ensure completeness.
+Public Const NonApplicable As String = "NonApplicable" '* "NonApplicable" label. This label prevents Excel cells from interpreting NA value unintentionally.
 Public Const This As String = "This" '* "This" label. This label is used for representing "this" Workbook mainly.
+Public Const Apostrophe As String = "'" '* "Apostrophe" label. This label is used for letting Microsoft Excel recognize any value as string type.
 Public Const Dot As String = "." '* "Dot" label. This label is used for defining delimiter between file name and file attribute mainly.
-Public Const The_Oldest_Date As String = "Y0000M00D00" '* The beginning date. This label is used for finding the latest date.
-Public Const The_Latest_Date As String = "Y9999M99D99" '* '* The latest date. This label is used for finding the oldest date.
-' Public Const First_Level_Delimiter As String = vbTab '* First-level delimiter.
-Public Const First_Level_Delimiter As String = "=====" '* First-level delimiter."
-' Public Const Second_Level_Delimiter As String = vbTab & vbTab '* Second-level delimiter.
-Public Const Second_Level_Delimiter As String = "&&&&&" '* Second-level delimiter.
+Public Const The_Oldest_Date As String = "0000-00-00" '* The beginning date. This label is used for finding the latest date.
+Public Const The_Latest_Date As String = "9999-99-99" '* '* The latest date. This label is used for finding the oldest date.
+' Public Const First_Level_Delimiter As String = vbTab '* @todo Replace First-level delimiter with tab code after debugging.
+Public Const First_Level_Delimiter As String = "First_Level_Delimiter" '* First-level delimiter."
+' Public Const Second_Level_Delimiter As String = vbTab & vbTab '* @todo Replace Second-level delimiter with two tab codes after debugging.
+Public Const Second_Level_Delimiter As String = "Second_Level_Delimiter" '* Second-level delimiter.
 Public Const Field_Date_Delimiter As String = "__" '* Field-Date delimiter. (ie. "ChargeAmount__Y2019M04")
 Public Const And_Operator As String = "&&&&&" '* And operator (five ampersand marks in a row).
 Public Const Or_Operator As String = "|||||" '* Or operator (five pipeline marks in a row).
 Public Const Path_Separator As String = "\" '* Path separator.
+Public Const Current_Directory As String = "\." '* Current directory.
+Public Const Parent_Directory As String = "\.." '* Parent directory.
 Public Const Excel_2010_2007_File_Attribute As String = "xlsx" '* "Excel 2010 and 2007" file attribute.
 Public Const Excel_97_2003_File_Attribute As String = "xls" '* "Excel 97 - 2003" file attribute.
 Public Const Left_Parentheses As String = "(" '* Left parentheses.
 Public Const Right_Parentheses As String = ")" '* Right parentheses.
+Public Const Link_Extension As String = ".lnk" '* Link extention.
 Public Enum Logger_Level '* Logger level.
   Off '* Log nothing.
   Fatal
@@ -71,6 +76,7 @@ Public Enum Exit_Status '* Exit status
   Database_Connection_Type_Is_Not_Valid
   Parameters_For_Database_Connection_Is_Not_Defined
   WordsReplacingMap_Is_Not_Defined
+  String_For_Date_Is_Not_Defined
   Miscellaneous
   CustomError
 End Enum
@@ -87,16 +93,20 @@ End Enum
 Public Enum Table_Column '* Table column
   Left__ = 1
 End Enum
+Public Enum Key_Value '* Key and value
+  Key = 0
+  Value
+End Enum
 Public Enum Field_And_Value '* Field and value
   Field
   Value
 End Enum
 Public Enum Database_Connection_Type '* Database connection type.
-  None
   MicrosoftExcelWorksheet
+  MicrosoftExcelWorksheetAsDatabase
   MicrosoftAccess
   Oracle
-  Miscellaneous
+  Invalid
 End Enum
 Public Enum Cursor_Type '* Cursor type for Recordset object.
   adOpenForwardOnly = 0
@@ -115,4 +125,11 @@ Public Enum Command_Type '* Command type for Recordset object.
   adCmdTable = 2
   adCmdStoredProc = 4
   adCmdUnknown = 8
+End Enum
+Public Enum vbext_ComponentType '* Component type
+  vbext_ct_StdModule = 1
+  vbext_ct_ClassModule = 2
+  vbext_ct_MSForm = 3
+  vbext_ct_ActiveXDesigner = 11
+  vbext_ct_Document = 100
 End Enum
